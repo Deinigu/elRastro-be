@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from elrastroapp.models import Usuario
+from elrastroapp.models import Usuario, Conversacion
 
 class UsuarioSerializer(serializers.ModelSerializer):
     class Meta:
@@ -7,3 +7,8 @@ class UsuarioSerializer(serializers.ModelSerializer):
         fields = ('correo', 'fotoURL', 'listaConver',
                    'productosVenta', 'reputacion', 'telefono', 
                    'vivienda', 'contrasenya', 'nombreUsuario')
+
+class ConversacionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Conversacion
+        fields = ('remitente', 'destinatario', 'n_mensajes', 'ultimo_mensaje')
