@@ -12,8 +12,12 @@ from rest_framework.decorators import api_view
 # Create your views here.
 
 @api_view(['GET', 'POST', 'DELETE'])
-def usuarios_list(request):
+def usuarios_list_view(request):
     if request.method == 'GET':
-        usuarios = Usuario.objects.all() 
+        usuarios = usuario_list()
         usuarios_serializer = UsuarioSerializer(usuarios, many=True)
         return JsonResponse(usuarios_serializer.data, safe=False)    # 'safe=False' for objects serialization  
+
+def usuario_list():
+    usuarios = Usuario.objects.all()
+    return usuarios
