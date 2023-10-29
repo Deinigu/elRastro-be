@@ -1,4 +1,5 @@
 Django
 pymongo==3.12.3
-djongo
+djongo==1.3.6
 pytz
+dnspython
