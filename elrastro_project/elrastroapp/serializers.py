@@ -11,4 +11,4 @@ class UsuarioSerializer(serializers.ModelSerializer):
 class ConversacionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Conversacion
-        fields = ('remitente', 'destinatario', 'n_mensajes', 'ultimo_mensaje')
+        fields = ('__all__')
