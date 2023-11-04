@@ -97,7 +97,7 @@ def productos_create_view(request):
             "descripcion" : descripcion,
             "fecha" : fecha,
             "fotoURL" : fotoURL,
-            "precio" : precio,
+            "precio" : float(precio),
             "tags" : tags,
             "ubicacion" : ubicacion,
             "vendedor" : ObjectId(vendedor),
