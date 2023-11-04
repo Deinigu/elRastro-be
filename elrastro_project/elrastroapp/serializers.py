@@ -14,6 +14,7 @@ class ProductoSerializer(serializers.Serializer):
     pujas = serializers.ListField(child=serializers.CharField())
     
 class UsuarioSerializer(serializers.Serializer):
+    _id = serializers.CharField(max_length = 24)    
     correo = serializers.EmailField()
     fotoURL = serializers.URLField()
     listaConver = serializers.ListField(child=serializers.CharField())
@@ -25,6 +26,7 @@ class UsuarioSerializer(serializers.Serializer):
     nombreUsuario = serializers.CharField()
 
 class ConversacionSerializer(serializers.Serializer):
+    _id = serializers.CharField(max_length = 24)
     remitente = serializers.CharField()
     destinatario = serializers.CharField()
     n_mensajes = serializers.IntegerField()

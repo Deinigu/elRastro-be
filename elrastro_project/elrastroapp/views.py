@@ -1,4 +1,4 @@
-from elrastroapp.serializers import UsuarioSerializer, ConversacionSerializer
+from elrastroapp.serializers import UsuarioSerializer, ConversacionSerializer, ProductoSerializer
 
 import pymongo
 
@@ -8,22 +8,12 @@ from bson import ObjectId
 from rest_framework.response import Response
 
 from django.http.response import JsonResponse
-from rest_framework.parsers import JSONParser 
-from rest_framework import status
- 
-from elrastroapp.serializers import ProductoSerializer, UsuarioSerializer
 from rest_framework.decorators import api_view
-
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
 from rest_framework.parsers import JSONParser
 from rest_framework import status
-from bson import ObjectId
 
-import pymongo
 from pymongo import ReturnDocument
 
-from django.http.response import JsonResponse
 from django.shortcuts import render, get_object_or_404
 
 # ----------------------------------------  VISTAS DE LA APLICACIÓN ------------------------------
@@ -49,6 +39,7 @@ def usuarios_list_view(request):
 
         # Pasar los ObjectId a String antes de pasar el serializer
         for usuario in usuarios:
+            usuario['_id'] = str(ObjectId(usuario.get('_id',[])))
             usuario['listaConver'] = [str(ObjectId(id)) for id in usuario.get('listaConver', [])]
             usuario['productosVenta'] = [str(ObjectId(id)) for id in usuario.get('productosVenta', [])]
 
@@ -69,6 +60,7 @@ def view_usuario(request, usuario_id=None):
             usuario = collection_usuarios.find_one({'_id': ObjectId(usuario_id)})
             if usuario:
                 usuario = transform_user_ids(usuario)
+                usuario['_id'] = str(ObjectId(usuario.get('_id',[])))
                 serializer = UsuarioSerializer(data=usuario)
                 if serializer.is_valid():
                     return Response(serializer.data, status=status.HTTP_200_OK)
@@ -119,6 +111,7 @@ def transform_user_ids(usuario):
 def conversacion_details_view(request, idConversacion):
     if request.method == 'GET':
         conversacion = collection_conversaciones.find_one(ObjectId(idConversacion))
+        conversacion['_id'] = str(ObjectId(conversacion.get('_id',[])))
         conversacion['remitente'] = str(ObjectId(conversacion.get('remitente', [])))
         conversacion['destinatario'] = str(ObjectId(conversacion.get('destinatario', [])))
         conversacion_serializer = ConversacionSerializer(data=conversacion, many=False)
@@ -135,6 +128,7 @@ def conversaciones_list_view(request):
     if request.method == 'GET':
         conversaciones = list(collection_conversaciones.find({}))
         for conversacion in conversaciones:
+            conversacion['_id'] = str(ObjectId(conversacion.get('_id',[])))
             conversacion['remitente'] = str(ObjectId(conversacion.get('remitente', [])))
             conversacion['destinatario'] = str(ObjectId(conversacion.get('destinatario', [])))
         conversacion_serializer = ConversacionSerializer(data=conversaciones, many=True)
