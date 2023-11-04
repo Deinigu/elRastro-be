@@ -1,7 +1,6 @@
 from django.shortcuts import render
 
 import pymongo
-from pymongo import ReturnDocument
 
 from datetime import datetime
 
@@ -120,3 +119,36 @@ def delete_producto_view(request, idProducto):
         if result.deleted_count == 1:
             return Response({"message": "Producto eliminado con éxito."}, status=status.HTTP_204_NO_CONTENT)
         return Response({"error": "Producto no encontrado."}, status=status.HTTP_404_NOT_FOUND)
+
+# Actualizar un producto
+@api_view(['PUT'])
+def update_producto_view(request, idProducto):
+    if request.method == 'PUT':
+        data = request.data
+                
+        nombre = data.get("Nombre")
+        descripcion = data.get("descripcion")
+        fotoURL = data.get("fotoURL")
+        precio = data.get("precio")
+        tags = data.get("tags")
+        ubicacion = data.get("ubicacion")
+        cierre = data.get("cierre")
+        
+        result = collection_productos.update_one(
+            {'_id': ObjectId(idProducto)},
+            {'$set':{
+                "Nombre" : nombre,
+                "descripcion" : descripcion,
+                "fotoURL" : fotoURL,
+                "precio" : precio,
+                "tags" : tags,
+                "ubicacion" : ubicacion,
+                "cierre" : cierre,}
+            }
+        )
+        if result.acknowledged:
+            # Document was successfully created, return its ObjectId
+            return Response({"message": "Producto actualizado."}, status=status.HTTP_200_OK)
+        else:
+            # Failed to create the document
+            return Response({"error": "Producto no encontrado."}, status=status.HTTP_404_NOT_FOUND)
