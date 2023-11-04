@@ -10,3 +10,9 @@ class UsuarioSerializer(serializers.Serializer):
     vivienda = serializers.CharField()
     contrasenya = serializers.CharField()
     nombreUsuario = serializers.CharField()
+
+class ConversacionSerializer(serializers.Serializer):
+    remitente = serializers.CharField()
+    destinatario = serializers.CharField()
+    n_mensajes = serializers.IntegerField()
+    ultimo_mensaje = serializers.CharField()
