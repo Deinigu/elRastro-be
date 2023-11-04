@@ -186,3 +186,67 @@ def conversacion_update_view(request, idConversacion):
         else:
             # Failed to create the document
             return Response({"error": "Conversación no encontrada"}, status=status.HTTP_404_NOT_FOUND)
+        
+# -------------------------------------  BÚSQUEDAS PARAMETRIZADAS ----------------------------------------
+# Buscar conversaciones de un usuario cuyo número de mensajes sea mayor o igual a un número pasado por parámetro.
+@api_view(['GET'])
+def conversaciones_usuario_mayor_mensajes_view(request, usuario_id, n_mensajes):
+    if request.method == 'GET':
+        conversaciones = list(collection_conversaciones.find({'remitente': ObjectId(usuario_id), 'n_mensajes': {'$gte': n_mensajes}}))
+        for conversacion in conversaciones:
+            conversacion['remitente'] = str(ObjectId(conversacion.get('remitente', [])))
+            conversacion['destinatario'] = str(ObjectId(conversacion.get('destinatario', [])))
+        conversacion_serializer = ConversacionSerializer(data=conversaciones, many=True)
+        if conversacion_serializer.is_valid():
+            json_data = conversacion_serializer.data 
+            return Response(json_data, status=status.HTTP_200_OK)
+        else:
+            return Response(conversacion_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+def conversaciones_usuario_view(request, usuario_id):
+    if request.method == 'GET':
+        conversaciones = list(collection_conversaciones.find({'remitente': ObjectId(usuario_id)}))
+        for conversacion in conversaciones:
+            conversacion['remitente'] = str(ObjectId(conversacion.get('remitente', [])))
+            conversacion['destinatario'] = str(ObjectId(conversacion.get('destinatario', [])))
+        conversacion_serializer = ConversacionSerializer(data=conversaciones, many=True)
+        if conversacion_serializer.is_valid():
+            json_data = conversacion_serializer.data 
+            return Response(json_data, status=status.HTTP_200_OK)
+        else:
+            return Response(conversacion_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+# Buscar usuarios cuya reputación sea mayor de un número dado.
+@api_view(['GET'])
+def usuarios_mayor_reputacion_view(request, reputacion):
+    if request.method == 'GET':
+        usuarios = list(collection_usuarios.find({'reputacion': {'$gt': reputacion}}))
+        for usuario in usuarios:
+            usuario['listaConver'] = [str(ObjectId(id)) for id in usuario.get('listaConver', [])]
+            usuario['productosVenta'] = [str(ObjectId(id)) for id in usuario.get('productosVenta', [])]
+
+        usuario_serializer = UsuarioSerializer(data=usuarios , many=True)
+        if usuario_serializer.is_valid():
+            json_data = usuario_serializer.data 
+            return Response(json_data, status=status.HTTP_200_OK)
+        else:
+            return Response(usuario_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+# Buscar usuarios cuya reputación sea menor de un número dado.
+@api_view(['GET'])
+def usuarios_menor_reputacion_view(request, reputacion):
+    if request.method == 'GET':
+        print(reputacion)
+        usuarios = list(collection_usuarios.find({'reputacion': {'$lt': reputacion}}))
+        print(usuarios)
+        for usuario in usuarios:
+            usuario['listaConver'] = [str(ObjectId(id)) for id in usuario.get('listaConver', [])]
+            usuario['productosVenta'] = [str(ObjectId(id)) for id in usuario.get('productosVenta', [])]
+        
+        usuario_serializer = UsuarioSerializer(data=usuarios, many=True)
+        if usuario_serializer.is_valid():
+            json_data = usuario_serializer.data 
+            return Response(json_data, status=status.HTTP_200_OK)
+        else:
+            return Response(usuario_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
