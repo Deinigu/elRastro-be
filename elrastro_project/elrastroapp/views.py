@@ -11,7 +11,6 @@ from django.http.response import JsonResponse
 from rest_framework.parsers import JSONParser 
 from rest_framework import status
  
-from elrastroapp.models import Usuario, Producto
 from elrastroapp.serializers import ProductoSerializer, UsuarioSerializer
 from rest_framework.decorators import api_view
 
@@ -37,6 +36,7 @@ dbname = my_client['ElRastro']
 # Colecciones
 collection_usuarios = dbname["usuarios"]
 collection_conversaciones = dbname["conversaciones"]
+collection_productos = dbname["productos"]
 
 # -------------------------------------  VISTAS DE USUARIOS ----------------------------------------
 
@@ -176,8 +176,8 @@ def conversacion_create_view(request):
             # Failed to create the document
             return Response({"error": "Conversación no creada"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
  #Actualizar una conversación
- @api_view(['PUT'])
- def conversacion_update_view(request, idConversacion):
+@api_view(['PUT'])
+def conversacion_update_view(request, idConversacion):
     if request.method == 'PUT':
         data = request.data
         remitente = data.get("remitente")
@@ -200,7 +200,7 @@ def conversacion_create_view(request):
             # Failed to create the document
             return Response({"error": "Conversación no encontrada"}, status=status.HTTP_404_NOT_FOUND)
 
-# ---- [VISTAS DE PRODUCTO] ----
+# -------------------------------------  VISTAS DE PRODUCTO ----------------------------------------
 # Lista con todos los productos
 @api_view(['GET'])
 def productos_list_view(request):
@@ -309,6 +309,8 @@ def update_producto_view(request, idProducto):
                 "tags" : tags,
                 "ubicacion" : ubicacion,
                 "cierre" : cierre,}
+            })
+        if result.acknowledged:
             return Response({"message": "Producto actualizado."}, status=status.HTTP_200_OK)
         else:
             # Failed to create the document
