@@ -36,21 +36,43 @@ def usuario_list():
     usuarios = Usuario.objects.all()
     return usuarios
 
+# ---- [VISTAS DE PRODUCTO] ----
 # Lista con todos los productos
 @api_view(['GET'])
 def productos_list_view(request):
     if request.method == 'GET':
-        productos = collection_productos.find({})
-        productos_serializer = ProductoSerializer(productos, many= True)
-        return JsonResponse(productos_serializer.data, safe = False)
+        productos = list(collection_productos.find({}))
+        
+        # Transformar los objectid en strings
+        for p in productos:
+            p['_id'] = str(ObjectId(p.get('_id',[])))
+            p['vendedor'] = str(ObjectId(p.get('vendedor',[])))
+            p['pujas'] = [str(ObjectId(puja)) for puja in p.get('pujas',[])]
+        
+        productos_serializer = ProductoSerializer(data=productos, many= True)
+        if productos_serializer.is_valid():
+            json_data = productos_serializer.data
+            return Response(json_data, status=status.HTTP_200_OK)
+        else:
+            return Response(productos_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 # Detalles de un producto
 @api_view(['GET'])
 def productos_detail_view(request, idProducto):
     if request.method == 'GET':
         producto = collection_productos.find_one(ObjectId(idProducto))
-        producto_serializer = ProductoSerializer(producto, many = False) 
-        return JsonResponse(producto_serializer.data, safe=False)
+        
+        # Transformar los objectid en strings
+        producto['_id'] = str(ObjectId(producto.get('_id',[])))
+        producto['vendedor'] = str(ObjectId(producto.get('vendedor',[])))
+        producto['pujas'] = [str(ObjectId(puja)) for puja in producto.get('pujas',[])]
+            
+        producto_serializer = ProductoSerializer(data=producto, many = False) 
+        if producto_serializer.is_valid():
+            json_data = producto_serializer.data
+            return Response(json_data, status=status.HTTP_200_OK)
+        else:
+            return Response(producto_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # Crear un producto
 @api_view(['POST'])
@@ -91,3 +113,5 @@ def productos_create_view(request):
         else:
             # Failed to create the document
             return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+# Borrar un producto

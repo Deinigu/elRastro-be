@@ -65,9 +65,6 @@ class Conversacion(models.Model):
     class Meta:
         db_table = 'conversaciones'
 
-usuario = Usuario.objects.get(correo="a@a")
-print(usuario.nombreUsuario)
-
 '''
 my_client = pymongo.MongoClient('mongodb+srv://usuario:usuario@elrastrodb.oqjmaaw.mongodb.net/')
 
