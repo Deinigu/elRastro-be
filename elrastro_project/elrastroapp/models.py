@@ -1,6 +1,7 @@
 from django.db import models
-# --------------------------- NO SE USAN MODELOS AL UTILIZAR MONGODB COMO BASE DE DATOS NO RELACIONAL PARA EL BACKEND -----------------
+from django.contrib.postgres.fields import ArrayField
 
+# --------------------------- NO SE USAN MODELOS AL UTILIZAR MONGODB COMO BASE DE DATOS NO RELACIONAL PARA EL BACKEND -----------------
 '''
 # Create your models here.
 import pymongo
@@ -26,6 +27,7 @@ class Usuario(models.Model):
         db_table = 'usuarios'
 
 class Producto(models.Model):
+    _id = models.CharField(max_length=24, primary_key=True)  # Utiliza CharField como clave primaria
     Nombre = models.CharField(max_length=100)
     descripcion = models.TextField()
     fecha = models.DateField()
@@ -33,9 +35,9 @@ class Producto(models.Model):
     precio = models.DecimalField(max_digits=6, decimal_places=2)
     tags = models.CharField(max_length=200)
     ubicacion = models.CharField(max_length=100)
-    vendedor = models.ForeignKey(Usuario, on_delete=models.CASCADE)
+    vendedor = models.CharField(max_length=24)
     cierre = models.DateField()
-    pujas = models.ManyToManyField('Puja', related_name='productos_pujados')
+    pujas = ArrayField(base_field=models.CharField(max_length=24))
 
     def __str__(self):
         return self.Nombre
@@ -64,7 +66,6 @@ class Conversacion(models.Model):
         return f'Conversación entre {self.remitente.nombreUsuario} y {self.destinatario.nombreUsuario}'
     class Meta:
         db_table = 'conversaciones'
-
 
 my_client = pymongo.MongoClient('mongodb+srv://usuario:usuario@elrastrodb.oqjmaaw.mongodb.net/')
 
