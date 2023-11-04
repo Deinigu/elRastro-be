@@ -45,97 +45,56 @@ def usuarios_list_view(request):
             return Response(json_data, status=status.HTTP_200_OK)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+# CRUD: READ, UPDATE Y DELETE     
 
-# (CREATE) CREAR UN NUEVO USUARIO
+@api_view(['GET', 'POST', 'PUT', 'DELETE'])
+def view_usuario(request, usuario_id=None):
+    if request.method == 'GET':
+        if usuario_id:
+            # READ USER 
+            usuario = collection_usuarios.find_one({'_id': ObjectId(usuario_id)})
+            if usuario:
+                usuario = transform_user_ids(usuario)
+                serializer = UsuarioSerializer(data=usuario)
+                if serializer.is_valid():
+                    return Response(serializer.data, status=status.HTTP_200_OK)
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "Usuario no encontrado"}, status=status.HTTP_404_NOT_FOUND)
+        
+    elif request.method == 'PUT':
+        if usuario_id:
+            # UPDATE USER 
+            data = request.data
+            usuario = collection_usuarios.find_one({'_id': ObjectId(usuario_id)})
+            if usuario:
+                for key, value in data.items():
+                    usuario[key] = value
+                collection_usuarios.save(usuario)
+                return Response({"message": "Usuario actualizado con éxito"}, status=status.HTTP_200_OK)
+            return Response({"error": "Usuario no encontrado"}, status=status.HTTP_404_NOT_FOUND)
+
+    elif request.method == 'DELETE':
+        if usuario_id:
+            # DELETE USER
+            result = collection_usuarios.delete_one({'_id': ObjectId(usuario_id)})
+            if result.deleted_count == 1:
+                return Response({"message": "Usuario eliminado con éxito"}, status=status.HTTP_204_NO_CONTENT)
+            return Response({"error": "Usuario no encontrado"}, status=status.HTTP_404_NOT_FOUND)
+
+# CRUD: CREATE USER
 
 @api_view(['POST'])
 def create_usuario(request):
     if request.method == 'POST':
         data = request.data
-        
         if 'correo' in data and 'nombreUsuario' in data:
             usuario = collection_usuarios.insert_one(data)
             return Response({"message": "Usuario creado con éxito", "usuario_id": str(usuario.inserted_id)}, status=status.HTTP_201_CREATED)
         else:
             return Response({"error": "Correo y nombre de usuario son campos requeridos"}, status=status.HTTP_400_BAD_REQUEST)
 
-# (READ) LEER UN USUARIO 
-
-@api_view(['GET'])
-def get_usuario(request, usuario_id):
-    if request.method == 'GET':
-        usuario = collection_usuarios.find_one({'_id': ObjectId(usuario_id)})
-        if usuario:
-            # Pasar los ObjectId a String antes de pasar el serializer
-            usuario['listaConver'] = [str(ObjectId(id)) for id in usuario.get('listaConver', [])]
-            usuario['productosVenta'] = [str(ObjectId(id)) for id in usuario.get('productosVenta', [])]
-            serializer = UsuarioSerializer(data=usuario)
-            if serializer.is_valid():
-                json_data = serializer.data
-                return Response(json_data, status=status.HTTP_200_OK)
-        return Response({"error": "Usuario no encontrado"}, status=status.HTTP_404_NOT_FOUND)
-
-# (UPDATE) ACTUALIZAR UN USUARIO 
-
-@api_view(['PUT'])
-def update_usuario(request, usuario_id):
-    if request.method == 'PUT':
-        data = request.data
-        usuario = collection_usuarios.find_one({'_id': ObjectId(usuario_id)})
-        if usuario:
-            # Actualizar los campos necesarios
-            for key, value in data.items():
-                usuario[key] = value
-            collection_usuarios.save(usuario)
-            return Response({"message": "Usuario actualizado con éxito"}, status=status.HTTP_200_OK)
-        return Response({"error": "Usuario no encontrado"}, status=status.HTTP_404_NOT_FOUND)
-
-# (DELETE) ELIMINAR UN USUARIO
-
-@api_view(['DELETE'])
-def delete_usuario(request, usuario_id):
-    if request.method == 'DELETE':
-        result = collection_usuarios.delete_one({'_id': ObjectId(usuario_id)})
-        if result.deleted_count == 1:
-            return Response({"message": "Usuario eliminado con éxito"}, status=status.HTTP_204_NO_CONTENT)
-        return Response({"error": "Usuario no encontrado"}, status=status.HTTP_404_NOT_FOUND)
-
-
-'''
-@api_view(['GET', 'POST'])
-def usuarios_list_view(request):
-    if request.method == 'GET':
-        usuarios = Usuario.objects.all()
-        usuarios_serializer = UsuarioSerializer(usuarios, many=True)
-        return Response(usuarios_serializer.data)
-    elif request.method == 'POST':
-        usuario_serializer = UsuarioSerializer(data=request.data)
-        if usuario_serializer.is_valid():
-            usuario_serializer.save()
-            return Response(usuario_serializer.data, status=status.HTTP_201_CREATED)
-        return Response(usuario_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-'''
-
-'''
-@api_view(['GET', 'PUT', 'DELETE'])
-def usuario_detail_view(request, correo):
-    try:
-        usuario = Usuario.objects.get(correo=correo)
-    except Usuario.DoesNotExist:
-        return Response({'message': 'El usuario no existe'}, status=status.HTTP_404_NOT_FOUND)
-
-    if request.method == 'GET':
-        usuario_serializer = UsuarioSerializer(usuario)
-        return Response(usuario_serializer.data)
-
-    elif request.method == 'PUT':
-        usuario_serializer = UsuarioSerializer(usuario, data=request.data)
-        if usuario_serializer.is_valid():
-            usuario_serializer.save()
-            return Response(usuario_serializer.data)
-        return Response(usuario_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    elif request.method == 'DELETE':
-        usuario.delete()
-        return Response({'message': 'Usuario eliminado correctamente'}, status=status.HTTP_204_NO_CONTENT)
-'''
+def transform_user_ids(usuario):
+    usuario['listaConver'] = [str(ObjectId(id)) for id in usuario.get('listaConver', [])]
+    usuario['productosVenta'] = [str(ObjectId(id)) for id in usuario.get('productosVenta', [])]
+    return usuario
