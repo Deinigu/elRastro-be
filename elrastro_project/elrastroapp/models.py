@@ -1,12 +1,16 @@
 from django.db import models
 
+# --------------------------- NO SE USAN MODELOS AL UTILIZAR MONGODB COMO BASE DE DATOS NO RELACIONAL PARA EL BACKEND -----------------
+
+'''
 # Create your models here.
 import pymongo
 #connect_string = 'mongodb+srv://<username>:<password>@<atlas cluster>/<myFirstDatabase>?retryWrites=true&w=majority' 
 
 from django.conf import settings
 class Usuario(models.Model):
-    correo = models.EmailField()
+    _id = models.CharField(max_length=24, primary_key=True)
+    correo = models.EmailField(unique=True)
     fotoURL = models.URLField()
     listaConver = models.ManyToManyField('Conversacion')
     productosVenta = models.ManyToManyField('Producto')  
@@ -17,7 +21,7 @@ class Usuario(models.Model):
     nombreUsuario = models.CharField(max_length=50)
 
     def __str__(self):
-        return self.nombreUsuario
+        return str(self._id)
     
     class Meta:
         db_table = 'usuarios'
@@ -63,10 +67,6 @@ class Conversacion(models.Model):
     class Meta:
         db_table = 'conversaciones'
 
-usuario = Usuario.objects.get(correo="a@a")
-print(usuario.nombreUsuario)
-
-'''
 my_client = pymongo.MongoClient('mongodb+srv://usuario:usuario@elrastrodb.oqjmaaw.mongodb.net/')
 
 # First define the database name
