@@ -1,13 +1,16 @@
 from django.db import models
 from django.contrib.postgres.fields import ArrayField
 
+# --------------------------- NO SE USAN MODELOS AL UTILIZAR MONGODB COMO BASE DE DATOS NO RELACIONAL PARA EL BACKEND -----------------
+'''
 # Create your models here.
 import pymongo
 #connect_string = 'mongodb+srv://<username>:<password>@<atlas cluster>/<myFirstDatabase>?retryWrites=true&w=majority' 
 
 from django.conf import settings
 class Usuario(models.Model):
-    correo = models.EmailField()
+    _id = models.CharField(max_length=24, primary_key=True)
+    correo = models.EmailField(unique=True)
     fotoURL = models.URLField()
     listaConver = models.ManyToManyField('Conversacion')
     productosVenta = models.ManyToManyField('Producto')  
@@ -18,7 +21,7 @@ class Usuario(models.Model):
     nombreUsuario = models.CharField(max_length=50)
 
     def __str__(self):
-        return self.nombreUsuario
+        return str(self._id)
     
     class Meta:
         db_table = 'usuarios'
@@ -38,7 +41,7 @@ class Producto(models.Model):
 
     def __str__(self):
         return self.Nombre
-    
+
     class Meta:
         db_table = 'productos'
 
@@ -47,16 +50,15 @@ class Puja(models.Model):
     valor = models.DecimalField(max_digits=6, decimal_places=2)
     fecha = models.DateField()
     producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
-
     def __str__(self):
         return f"Puja de {self.pujador} en {self.producto} - Valor: {self.valor}"
-
     class Meta:
         db_table = 'pujas'
 
 class Conversacion(models.Model):
-    remitente = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='conversaciones_enviadas')
-    destinatario = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='conversaciones_recibidas')
+    _id = models.CharField(max_length=24, primary_key=True)  # Utiliza CharField como clave primaria
+    remitente = models.CharField(max_length=24)
+    destinatario = models.CharField(max_length=24)    #Creo que puedes usar los related_name para hacer algo tipo conversaciones_enviadas = usuario.conversaciones_enviadas.all()
     n_mensajes = models.PositiveIntegerField() 
     ultimo_mensaje = models.TextField()
 
@@ -65,7 +67,6 @@ class Conversacion(models.Model):
     class Meta:
         db_table = 'conversaciones'
 
-'''
 my_client = pymongo.MongoClient('mongodb+srv://usuario:usuario@elrastrodb.oqjmaaw.mongodb.net/')
 
 # First define the database name

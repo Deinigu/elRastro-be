@@ -20,5 +20,20 @@ class ProductoSerializer(serializers.Serializer):
     vendedor = serializers.CharField(max_length = 24)
     cierre = serializers.DateField(input_formats=["%d/%m/%Y"])
     pujas = serializers.ListField(child=serializers.CharField())
-
     
+class UsuarioSerializer(serializers.Serializer):
+    correo = serializers.EmailField()
+    fotoURL = serializers.URLField()
+    listaConver = serializers.ListField(child=serializers.CharField())
+    productosVenta = serializers.ListField(child=serializers.CharField())
+    reputacion = serializers.FloatField()
+    telefono = serializers.CharField()
+    vivienda = serializers.CharField()
+    contrasenya = serializers.CharField()
+    nombreUsuario = serializers.CharField()
+
+class ConversacionSerializer(serializers.Serializer):
+    remitente = serializers.CharField()
+    destinatario = serializers.CharField()
+    n_mensajes = serializers.IntegerField()
+    ultimo_mensaje = serializers.CharField()
