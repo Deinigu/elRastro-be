@@ -5,3 +5,4 @@ pytz
 dnspython
 djangorestframework
 django-cors-headers
+psycopg2
