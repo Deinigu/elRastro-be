@@ -46,10 +46,11 @@ class Producto(models.Model):
         db_table = 'productos'
 
 class Puja(models.Model):
-    pujador = models.ForeignKey(Usuario, on_delete=models.CASCADE)
+    _id = models.CharField(max_length=24, primary_key=True)  # Utiliza CharField como clave primaria
+    pujador = models.CharField(max_length=24)
     valor = models.DecimalField(max_digits=6, decimal_places=2)
     fecha = models.DateField()
-    producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
+    producto = models.CharField(max_length=24)
     def __str__(self):
         return f"Puja de {self.pujador} en {self.producto} - Valor: {self.valor}"
     class Meta:

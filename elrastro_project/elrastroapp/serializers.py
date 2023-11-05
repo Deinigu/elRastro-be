@@ -25,9 +25,17 @@ class UsuarioSerializer(serializers.Serializer):
     contrasenya = serializers.CharField()
     nombreUsuario = serializers.CharField()
 
+class PujaSerializer(serializers.Serializer):
+    _id = serializers.CharField()
+    pujador = serializers.CharField()
+    valor = serializers.DecimalField(max_digits=6, decimal_places=2)
+    fecha = serializers.DateField(input_formats=["%d/%m/%Y"])
+    producto = serializers.CharField()
+
 class ConversacionSerializer(serializers.Serializer):
     _id = serializers.CharField(max_length = 24)
     remitente = serializers.CharField()
     destinatario = serializers.CharField()
     n_mensajes = serializers.IntegerField()
     ultimo_mensaje = serializers.CharField()
+
