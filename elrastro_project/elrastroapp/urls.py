@@ -20,4 +20,12 @@ urlpatterns = [
     path('api/usuarios/', views.usuarios_list_view, name='usuarios_list'),
     path('api/usuarios/<str:usuario_id>/', views.view_usuario, name='view_usuario'),
     path('api/usuarios/create/', views.create_usuario, name='create_usuario')
+    path('api/usuarios/create/', views.create_usuario, name='create_usuario'),
+  
+    #Consultas
+    path('api/conversaciones_usuario/<str:usuario_id>/', views.conversaciones_usuario_view, name='conversaciones_usuario'),
+    path('api/conversaciones_usuario_mayor_mensajes/<str:usuario_id>/<int:n_mensajes>/', views.conversaciones_usuario_mayor_mensajes_view, name='conversaciones_usuario_mayor'),
+    path('api/usuarios_mayor_reputacion/<int:reputacion>/', views.usuarios_mayor_reputacion_view, name='usuarios_mayor_reputacion'),
+    path('api/usuarios_menor_reputacion/<int:reputacion>/', views.usuarios_menor_reputacion_view, name='usuarios_menor_reputacion'),
+
 ]
