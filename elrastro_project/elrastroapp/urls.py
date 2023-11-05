@@ -8,7 +8,7 @@ urlpatterns = [
     path('api/puja_detail/<str:puja_id>', views.puja_detail_view),
     path('api/puja_create', views.puja_create_view),  
     path('api/puja_delete/<str:puja_id>', views.puja_delete_view),  
-    path('api/puja_update/<str:puja_id>', views.puja_update_view) 
+    path('api/puja_update/<str:puja_id>', views.puja_update_view), 
 
     # PRODUCTOS
     path('api/productos/', views.productos_list_view),
@@ -27,7 +27,7 @@ urlpatterns = [
     # USUARIOS
     path('api/usuarios/', views.usuarios_list_view, name='usuarios_list'),
     path('api/usuarios/<str:usuario_id>/', views.view_usuario, name='view_usuario'),
-    path('api/usuarios/create/', views.create_usuario, name='create_usuario')
+    path('api/usuarios/create/', views.create_usuario, name='create_usuario'),
     path('api/usuarios/create/', views.create_usuario, name='create_usuario'),
   
     # CONSULTAS
