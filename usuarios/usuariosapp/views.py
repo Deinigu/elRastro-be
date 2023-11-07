@@ -106,3 +106,38 @@ def transform_user_ids(usuario):
     usuario['listaConver'] = [str(ObjectId(id)) for id in usuario.get('listaConver', [])]
     usuario['productosVenta'] = [str(ObjectId(id)) for id in usuario.get('productosVenta', [])]
     return usuario
+# -------------------------------------  BÚSQUEDAS PARAMETRIZADAS ----------------------------------------
+
+# Buscar usuarios cuya reputación sea mayor de un número dado.
+@api_view(['GET'])
+def usuarios_mayor_reputacion_view(request, reputacion):
+    if request.method == 'GET':
+        usuarios = list(collection_usuarios.find({'reputacion': {'$gt': reputacion}}))
+        for usuario in usuarios:
+            usuario['listaConver'] = [str(ObjectId(id)) for id in usuario.get('listaConver', [])]
+            usuario['productosVenta'] = [str(ObjectId(id)) for id in usuario.get('productosVenta', [])]
+
+        usuario_serializer = UsuarioSerializer(data=usuarios , many=True)
+        if usuario_serializer.is_valid():
+            json_data = usuario_serializer.data 
+            return Response(json_data, status=status.HTTP_200_OK)
+        else:
+            return Response(usuario_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+# Buscar usuarios cuya reputación sea menor de un número dado.
+@api_view(['GET'])
+def usuarios_menor_reputacion_view(request, reputacion):
+    if request.method == 'GET':
+        print(reputacion)
+        usuarios = list(collection_usuarios.find({'reputacion': {'$lt': reputacion}}))
+        print(usuarios)
+        for usuario in usuarios:
+            usuario['listaConver'] = [str(ObjectId(id)) for id in usuario.get('listaConver', [])]
+            usuario['productosVenta'] = [str(ObjectId(id)) for id in usuario.get('productosVenta', [])]
+        
+        usuario_serializer = UsuarioSerializer(data=usuarios, many=True)
+        if usuario_serializer.is_valid():
+            json_data = usuario_serializer.data 
+            return Response(json_data, status=status.HTTP_200_OK)
+        else:
+            return Response(usuario_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
