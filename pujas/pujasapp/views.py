@@ -1,20 +1,10 @@
 from pujasapp.serializers import PujaSerializer
-
 import pymongo
-
 from datetime import datetime
-
 from bson import ObjectId
 from rest_framework.response import Response
-
-from django.http.response import JsonResponse
 from rest_framework.decorators import api_view
-from rest_framework.parsers import JSONParser
 from rest_framework import status
-
-from pymongo import ReturnDocument
-
-from django.shortcuts import render, get_object_or_404
 
 # ----------------------------------------  VISTAS DE LA APLICACIÓN ------------------------------
 # Conexión a la base de datos MongoDB
@@ -70,7 +60,7 @@ def puja_delete_view(request, puja_id):
     if request.method == 'DELETE':
         delete_data = collection_pujas.delete_one({'_id': ObjectId(puja_id)})
         if delete_data.deleted_count == 1:
-            return Response({"message": "Puja eliminada con éxito"}, status=status.HTTP_200_OK)
+            return Response({"mensaje": "Puja eliminada con éxito"}, status=status.HTTP_200_OK)
         else:
             return Response({"ERROR": "Puja no encontrada"}, status=status.HTTP_404_NOT_FOUND)
         
@@ -83,7 +73,7 @@ def puja_create_view(request):
         pujador = data.get("pujador")
         producto = data.get("producto")
         valor = data.get("valor")
-        fecha = datetime.now().strftime("%d/%m/%Y")
+        fecha = datetime.now()
         puja = {
             "_id": ObjectId(),
             "pujador": ObjectId(pujador),
@@ -94,19 +84,20 @@ def puja_create_view(request):
         result = collection_pujas.insert_one(puja)
         if result.acknowledged:
             # Document was successfully created, return its ObjectId
-            return Response({"message": "Puja creada con éxito"}, status=status.HTTP_201_CREATED)
+            return Response({"mensaje": "Puja creada con éxito"}, status=status.HTTP_201_CREATED)
         else:
             # Failed to create the document
             return Response({"ERROR": "Puja no creada"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
-# UPDATE PUJA
-@api_view(['PUT'])
+# UPDATE PUJA -- No tiene sentido poder actualizar una puja así que no hemos incluído esta función
+
+'''@api_view(['PUT'])
 def puja_update_view(request, puja_id):
     data = request.data
     pujador = data.get("pujador")
     producto = data.get("producto")
     valor = data.get("valor")
-    fecha = datetime.now().strftime("%d/%m/%Y")
+    fecha = datetime.now()
     result = collection_pujas.update_one(
         {'_id': ObjectId(puja_id)},
         {'$set':{
@@ -123,3 +114,4 @@ def puja_update_view(request, puja_id):
             # Failed to create the document
         return Response({"ERROR": "Puja no encontrada"}, status=status.HTTP_404_NOT_FOUND)
 
+'''
