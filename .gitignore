@@ -26,3 +26,15 @@ usuarios/usuariosapp/__pycache__/serializers.cpython-311.pyc
 usuarios/usuariosapp/__pycache__/urls.cpython-311.pyc
 usuarios/usuariosapp/__pycache__/views.cpython-311.pyc
 usuarios/usuariosapp/migrations/__pycache__/__init__.cpython-311.pyc
+productos/productos/__pycache__/__init__.cpython-311.pyc
+productos/productos/__pycache__/settings.cpython-311.pyc
+productos/productos/__pycache__/urls.cpython-311.pyc
+productos/productos/__pycache__/wsgi.cpython-311.pyc
+productos/productosapp/__pycache__/__init__.cpython-311.pyc
+productos/productosapp/__pycache__/admin.cpython-311.pyc
+productos/productosapp/__pycache__/apps.cpython-311.pyc
+productos/productosapp/__pycache__/models.cpython-311.pyc
+productos/productosapp/__pycache__/serializers.cpython-311.pyc
+productos/productosapp/__pycache__/urls.cpython-311.pyc
+productos/productosapp/__pycache__/views.cpython-311.pyc
+productos/productosapp/migrations/__pycache__/__init__.cpython-311.pyc
