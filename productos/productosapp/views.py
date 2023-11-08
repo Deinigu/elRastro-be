@@ -3,6 +3,7 @@ from productosapp.serializers import  ProductoSerializer
 import pymongo
 
 from datetime import datetime
+from dateutil import parser
 
 from bson import ObjectId
 from rest_framework.response import Response
@@ -67,12 +68,11 @@ def productos_detail_view(request, idProducto):
 # Crear un producto
 @api_view(['POST'])
 def productos_create_view(request):
-    if request.method == 'POST':
-        now = datetime.now()
-        fecha = now.strftime("%d/%m/%Y")
+    if request.method == 'POST':        
+        data = request.data   
         
-        data = request.data
-                
+        fecha = datetime.now()
+
         nombre = data.get("Nombre")
         descripcion = data.get("descripcion")
         fotoURL = data.get("fotoURL")
@@ -92,7 +92,7 @@ def productos_create_view(request):
             "tags" : tags,
             "ubicacion" : ubicacion,
             "vendedor" : ObjectId(vendedor),
-            "cierre" : cierre,
+            "cierre" : parser.parse(cierre),
             "pujas" : []
         }
         

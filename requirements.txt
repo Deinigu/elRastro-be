@@ -6,3 +6,4 @@ dnspython
 djangorestframework
 django-cors-headers
 psycopg2
+python-dateutil
