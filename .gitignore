@@ -50,3 +50,14 @@ pujas/pujasapp/__pycache__/serializers.cpython-311.pyc
 pujas/pujasapp/__pycache__/urls.cpython-311.pyc
 pujas/pujasapp/__pycache__/views.cpython-311.pyc
 pujas/pujasapp/migrations/__pycache__/__init__.cpython-311.pyc
+cambiomoneda/cambiomoneda/__pycache__/__init__.cpython-311.pyc
+cambiomoneda/cambiomoneda/__pycache__/settings.cpython-311.pyc
+cambiomoneda/cambiomonedaapp/__pycache__/__init__.cpython-311.pyc
+cambiomoneda/cambiomonedaapp/__pycache__/admin.cpython-311.pyc
+cambiomoneda/cambiomonedaapp/__pycache__/apps.cpython-311.pyc
+cambiomoneda/cambiomonedaapp/__pycache__/models.cpython-311.pyc
+cambiomoneda/cambiomonedaapp/__pycache__/urls.cpython-311.pyc
+cambiomoneda/cambiomonedaapp/__pycache__/views.cpython-311.pyc
+cambiomoneda/cambiomonedaapp/migrations/__pycache__/__init__.cpython-311.pyc
+cambiomoneda/cambiomoneda/__pycache__/wsgi.cpython-311.pyc
+cambiomoneda/cambiomoneda/__pycache__/urls.cpython-311.pyc
