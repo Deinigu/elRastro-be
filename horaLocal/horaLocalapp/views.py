@@ -4,6 +4,7 @@ from bson import ObjectId
 
 from django.http.response import JsonResponse
 from rest_framework.decorators import api_view
+from rest_framework import status
 
 from geopy.geocoders import Nominatim
 
@@ -23,9 +24,12 @@ collection_usuarios = dbname["usuarios"]
 def obtener_hora_local(request, idUsuario):
     if request.method == 'GET':
         #Devuelve donde coño vive el usuario
-        usuario = collection_usuarios.find_one({'_id': ObjectId(idUsuario)})
+        url1 = 'http://localhost:8000/api/usuarios/compradores_de/' + idUsuario + '/'
+        response = requests.get(url1)
+        if response.status_code != 200:
+            return JsonResponse({'message': 'Error al obtener el usuario'}, status=status.HTTP_400_BAD_REQUEST)
+        usuario = response.json()
 
-        #Devuelve la latitud y longitud de la ubicacion del usuario
         # Crea una instancia del geocodificador de Nominatim
         geolocator = Nominatim(user_agent="my_geocoder")
 

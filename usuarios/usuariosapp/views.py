@@ -3,6 +3,7 @@ from django.shortcuts import render
 from usuariosapp.serializers import UsuarioSerializer
 
 import pymongo
+import requests
 
 from datetime import datetime
 
@@ -141,3 +142,35 @@ def usuarios_menor_reputacion_view(request, reputacion):
             return Response(json_data, status=status.HTTP_200_OK)
         else:
             return Response(usuario_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+        
+# Devuelve quiénes han sido compradores de cualquiera de los productos ofrecidos por un determinado usuario
+@api_view(['GET'])
+def compradores_usuario_view(request, usuario_id):
+    compradores = []
+    if request.method == 'GET':
+        url = 'http://localhost:8001/api/productos_anteriores/' + usuario_id
+        response = requests.get(url)
+        if response.status_code == 200:
+            productos = response.json()
+            for producto in productos:
+                url = 'http://localhost:8002/api/ultima_puja/producto/' + str(producto['_id'])
+                response = requests.get(url)
+                if response.status_code == 200:
+                    puja = response.json()
+                    if puja['pujador'] not in compradores:
+                        compradores.append(puja['pujador'])
+            usuarios = list(collection_usuarios.find({'_id': {'$in': compradores}}))
+            for usuario in usuarios:
+                usuario['listaConver'] = [str(ObjectId(id)) for id in usuario.get('listaConver', [])]
+                usuario['productosVenta'] = [str(ObjectId(id)) for id in usuario.get('productosVenta', [])]
+            usuario_serializer = UsuarioSerializer(data=usuarios, many=True)
+            if usuario_serializer.is_valid():
+                json_data = usuario_serializer.data 
+                return Response(json_data, status=status.HTTP_200_OK)
+            else:
+                return Response(usuario_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({"error": "Usuario no encontrado"}, status=status.HTTP_404_NOT_FOUND)
+    

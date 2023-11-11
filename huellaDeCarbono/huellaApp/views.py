@@ -1,7 +1,9 @@
 import pymongo
+import requests
 
 from django.http.response import JsonResponse
 from rest_framework.decorators import api_view
+from rest_framework import status
 from bson import ObjectId
 
 from geopy.geocoders import Nominatim
@@ -22,8 +24,15 @@ import math
 @api_view(['GET'])
 def huellaDeCarbono(request, idUsuario1, idUsuario2):
     if request.method == 'GET':
-        usuario1 = collection_usuarios.find_one({'_id': ObjectId(idUsuario1)})
-        usuario2 = collection_usuarios.find_one({'_id': ObjectId(idUsuario2)})
+        url1 = 'http://localhost:8000/api/usuarios/compradores_de/' + idUsuario1 + '/'
+        url2 = 'http://localhost:8000/api/usuarios/compradores_de/' + idUsuario2 + '/'
+        response1 = requests.get(url1)
+        response2 = requests.get(url2)
+        if response1.status_code != 200 or response2.status_code != 200:
+            return JsonResponse({'message': 'Error al obtener los usuarios'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        usuario1 = response1.json()
+        usuario2 = response2.json()
 
         direccion1 = usuario1['vivienda']
         direccion2 = usuario2['vivienda']

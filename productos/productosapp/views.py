@@ -142,3 +142,39 @@ def update_producto_view(request, idProducto):
             # Failed to create the document
             return Response({"error": "Producto no encontrado."}, status=status.HTTP_404_NOT_FOUND)
 
+
+# Devuelve los productos de un determinado usuario y cuya fecha de cierre sea anterior a la actual
+@api_view(['GET'])
+def productos_usuario_anterior_view(request, idUsuario):
+    if request.method == 'GET':
+        productos = list(collection_productos.find({"vendedor": ObjectId(idUsuario), 
+                                                    "cierre": {"$lt": datetime.now()}}))
+        
+        for p in productos:
+            p['_id'] = str(ObjectId(p.get('_id',[])))
+            p['vendedor'] = str(ObjectId(p.get('vendedor',[])))
+            p['pujas'] = [str(ObjectId(puja)) for puja in p.get('pujas',[])]
+        
+        productos_serializer = ProductoSerializer(data=productos, many= True)
+        if productos_serializer.is_valid():
+            json_data = productos_serializer.data
+            return Response(json_data, status=status.HTTP_200_OK)
+        else:
+            return Response(productos_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+# Buscar productos cuyo precio sea menor o igual de un número dado.
+@api_view(['GET'])
+def productos_menor_precio_view(request, precio):
+    if request.method == 'GET':
+        productos = list(collection_productos.find({'precio': {'$lte': float(precio)}}))
+        for producto in productos:
+            producto['_id'] = str(ObjectId(producto.get('_id',[])))
+            producto['vendedor'] = str(ObjectId(producto.get('vendedor',[])))
+            producto['pujas'] = [str(ObjectId(puja)) for puja in producto.get('pujas',[])]
+        
+        producto_serializer = ProductoSerializer(data=productos, many=True)
+        if producto_serializer.is_valid():
+            json_data = producto_serializer.data 
+            return Response(json_data, status=status.HTTP_200_OK)
+        else:
+            return Response(producto_serializer.errors, status=status.HTTP_400_BAD_REQUEST)

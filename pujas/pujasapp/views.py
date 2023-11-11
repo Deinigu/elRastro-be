@@ -1,5 +1,6 @@
 from pujasapp.serializers import PujaSerializer
 import pymongo
+import requests
 from datetime import datetime
 from bson import ObjectId
 from rest_framework.response import Response
@@ -115,3 +116,58 @@ def puja_update_view(request, puja_id):
         return Response({"ERROR": "Puja no encontrada"}, status=status.HTTP_404_NOT_FOUND)
 
 '''
+
+#Devuelve la última puja de un producto en concreto
+@api_view(['GET'])
+def ultima_puja_producto(request, producto_id):
+    if request.method == 'GET':
+        if producto_id:
+            # READ PUJA 
+            puja = collection_pujas.find_one({'producto': ObjectId(producto_id)},
+                                              sort=[('fecha', -1)])
+            if puja:
+                puja['_id'] = str(ObjectId(puja.get('_id', [])))
+                puja['pujador'] = str(ObjectId(puja.get('pujador', [])))
+                puja['producto'] = str(ObjectId(puja.get('producto', [])))
+                serializer = PujaSerializer(data=puja)
+                if serializer.is_valid():
+                    return Response(serializer.data, status=status.HTTP_200_OK)
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "Puja no encontrada"}, status=status.HTTP_404_NOT_FOUND)
+        return Response({"error": "Producto no encontrado"}, status=status.HTTP_404_NOT_FOUND)
+    
+# Devuelve las pujas de un pujador en concreto.
+@api_view(['GET'])
+def pujas_usuario_view(request, usuario_id):
+    if request.method == 'GET':
+        pujas = list(collection_pujas.find({'pujador': ObjectId(usuario_id)}))
+        for puja in pujas:
+            puja['_id'] = str(ObjectId(puja.get('_id', [])))
+            puja['pujador'] = str(ObjectId(puja.get('pujador', [])))
+            puja['producto'] = str(ObjectId(puja.get('producto', [])))
+
+        serializer = PujaSerializer(data=pujas, many=True)
+        if serializer.is_valid():
+            json_data = serializer.data
+            return Response(json_data, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+#Devuelve la dirección de la persona pujadora
+@api_view(['GET'])
+def direccion_pujador(request, puja_id):
+    if request.method == 'GET':
+        if puja_id:
+            puja = collection_pujas.find_one({'_id': ObjectId(puja_id)})
+            if puja:
+                pujador = puja.get('pujador')
+                url = 'http://localhost:8000/api/usuarios/' + str(pujador) + '/'
+                response = requests.get(url)
+                if response.status_code == 200:
+                    usuario = response.json()
+                    if usuario:
+                        direccion = usuario.get('direccion')
+                        return Response({"direccion": direccion}, status=status.HTTP_200_OK)
+                    return Response({"error": "Usuario no encontrado"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Puja no encontrada"}, status=status.HTTP_404_NOT_FOUND)
+        return Response({"error": "Puja no encontrada"}, status=status.HTTP_404_NOT_FOUND)
