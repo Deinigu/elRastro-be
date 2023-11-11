@@ -53,12 +53,11 @@ def usuarios_list_view(request):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
           
-          
-# CRUD: READ, UPDATE Y DELETE     
-
-@api_view(['GET', 'POST', 'PUT', 'DELETE'])
+@api_view(['GET', 'PUT', 'DELETE'])
 def view_usuario(request, usuario_id=None):
+    print(request.method)
     if request.method == 'GET':
+        print("GETTT")
         if usuario_id:
             # READ USER 
             usuario = collection_usuarios.find_one({'_id': ObjectId(usuario_id)})
@@ -70,7 +69,7 @@ def view_usuario(request, usuario_id=None):
                     return Response(serializer.data, status=status.HTTP_200_OK)
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             return Response({"error": "Usuario no encontrado"}, status=status.HTTP_404_NOT_FOUND)
-        
+
     elif request.method == 'PUT':
         if usuario_id:
             # UPDATE USER 
@@ -84,6 +83,7 @@ def view_usuario(request, usuario_id=None):
             return Response({"error": "Usuario no encontrado"}, status=status.HTTP_404_NOT_FOUND)
 
     elif request.method == 'DELETE':
+        print("DELETE")
         if usuario_id:
             # DELETE USER
             result = collection_usuarios.delete_one({'_id': ObjectId(usuario_id)})
@@ -91,30 +91,57 @@ def view_usuario(request, usuario_id=None):
                 return Response({"message": "Usuario eliminado con éxito"}, status=status.HTTP_204_NO_CONTENT)
             return Response({"error": "Usuario no encontrado"}, status=status.HTTP_404_NOT_FOUND)
 
-# CRUD: CREATE USER
-
-@api_view(['POST'])
-def create_usuario(request):
-    if request.method == 'POST':
-        data = request.data
-        if 'correo' in data and 'nombreUsuario' in data:
-            usuario = collection_usuarios.insert_one(data)
-            return Response({"message": "Usuario creado con éxito", "usuario_id": str(usuario.inserted_id)}, status=status.HTTP_201_CREATED)
-        else:
-            return Response({"error": "Correo y nombre de usuario son campos requeridos"}, status=status.HTTP_400_BAD_REQUEST)
-
 def transform_user_ids(usuario):
     usuario['listaConver'] = [str(ObjectId(id)) for id in usuario.get('listaConver', [])]
     usuario['productosVenta'] = [str(ObjectId(id)) for id in usuario.get('productosVenta', [])]
     return usuario
+
+
+# Crear un usuario
+@api_view(['POST'])
+def create_usuario_view(request):
+    print("ENTRA")
+    if request.method == 'POST':
+        data = request.data
+
+        nombreUsuario = data.get("nombreUsuario")
+        correo = data.get("correo")
+        fotoURL = data.get("fotoURL")
+        reputacion = 0.0
+        telefono = data.get("telefono")
+        vivienda = data.get("vivienda")
+        contrasenya = data.get("contrasenya")
+
+        usuario = {
+            "_id": ObjectId(),
+            "nombreUsuario": nombreUsuario,
+            "correo": correo,
+            "fotoURL": fotoURL,
+            "listaConver": [],
+            "productosVenta": [],
+            "reputacion": float(reputacion),
+            "telefono": telefono,
+            "vivienda": vivienda,
+            "contrasenya": contrasenya
+        }
+
+        result = collection_usuarios.insert_one(usuario)
+        if result.acknowledged:
+            return Response({"message": "Usuario creado con éxito",},
+                            status=status.HTTP_201_CREATED)
+        else:
+            return Response({"error": "Algo salió mal. Usuario no creado."},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
 # -------------------------------------  BÚSQUEDAS PARAMETRIZADAS ----------------------------------------
 
 # Buscar usuarios cuya reputación sea mayor de un número dado.
 @api_view(['GET'])
 def usuarios_mayor_reputacion_view(request, reputacion):
     if request.method == 'GET':
-        usuarios = list(collection_usuarios.find({'reputacion': {'$gt': reputacion}}))
+        usuarios = list(collection_usuarios.find({'reputacion': {'$gt': float(reputacion)}}))
         for usuario in usuarios:
+            usuario['_id'] = str(ObjectId(usuario.get('_id',[])))
             usuario['listaConver'] = [str(ObjectId(id)) for id in usuario.get('listaConver', [])]
             usuario['productosVenta'] = [str(ObjectId(id)) for id in usuario.get('productosVenta', [])]
 
@@ -129,10 +156,9 @@ def usuarios_mayor_reputacion_view(request, reputacion):
 @api_view(['GET'])
 def usuarios_menor_reputacion_view(request, reputacion):
     if request.method == 'GET':
-        print(reputacion)
-        usuarios = list(collection_usuarios.find({'reputacion': {'$lt': reputacion}}))
-        print(usuarios)
+        usuarios = list(collection_usuarios.find({'reputacion': {'$lt': float(reputacion)}}))
         for usuario in usuarios:
+            usuario['_id'] = str(ObjectId(usuario.get('_id',[])))
             usuario['listaConver'] = [str(ObjectId(id)) for id in usuario.get('listaConver', [])]
             usuario['productosVenta'] = [str(ObjectId(id)) for id in usuario.get('productosVenta', [])]
         
@@ -150,19 +176,25 @@ def usuarios_menor_reputacion_view(request, reputacion):
 def compradores_usuario_view(request, usuario_id):
     compradores = []
     if request.method == 'GET':
-        url = 'http://localhost:8001/api/productos_anteriores/' + usuario_id
+        url = 'http://localhost:8001/api/productos/anteriores/' + usuario_id
         response = requests.get(url)
         if response.status_code == 200:
             productos = response.json()
+            print(len(productos))
             for producto in productos:
-                url = 'http://localhost:8002/api/ultima_puja/producto/' + str(producto['_id'])
+                url = 'http://localhost:8002/api/pujas/ultima_puja/producto/' + str(producto['_id'])
                 response = requests.get(url)
                 if response.status_code == 200:
                     puja = response.json()
+                    print(puja['pujador'])
                     if puja['pujador'] not in compradores:
-                        compradores.append(puja['pujador'])
+                        print("HOLAAAA")
+                        compradores.append(ObjectId(puja['pujador']))
+            print(compradores)
             usuarios = list(collection_usuarios.find({'_id': {'$in': compradores}}))
+            print(usuarios)
             for usuario in usuarios:
+                usuario['_id'] = str(ObjectId(usuario.get('_id',[])))
                 usuario['listaConver'] = [str(ObjectId(id)) for id in usuario.get('listaConver', [])]
                 usuario['productosVenta'] = [str(ObjectId(id)) for id in usuario.get('productosVenta', [])]
             usuario_serializer = UsuarioSerializer(data=usuarios, many=True)
@@ -172,5 +204,5 @@ def compradores_usuario_view(request, usuario_id):
             else:
                 return Response(usuario_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         else:
-            return Response({"error": "Usuario no encontrado"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Productos no encontrados"}, status=status.HTTP_404_NOT_FOUND)
     

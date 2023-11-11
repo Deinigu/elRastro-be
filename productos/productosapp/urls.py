@@ -9,6 +9,6 @@ urlpatterns = [
     path('api/productos/delete/<str:idProducto>/', views.delete_producto_view),
     path('api/productos/<str:idProducto>/', views.productos_detail_view),
     path('api/productos/anteriores/<str:idUsuario>/', views.productos_usuario_anterior_view),
-    path('api/productos/precio_menor/<str:idUsuario>/', views.productos_menor_precio_view),
+    path('api/productos/precio_menor/<str:precio>/', views.productos_menor_precio_view),
 ]
     
