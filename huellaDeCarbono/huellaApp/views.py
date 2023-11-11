@@ -24,8 +24,8 @@ import math
 @api_view(['GET'])
 def huellaDeCarbono(request, idUsuario1, idUsuario2):
     if request.method == 'GET':
-        url1 = 'http://localhost:8000/api/usuarios/compradores_de/' + idUsuario1 + '/'
-        url2 = 'http://localhost:8000/api/usuarios/compradores_de/' + idUsuario2 + '/'
+        url1 = 'http://localhost:8000/api/usuarios/' + idUsuario1 + '/'
+        url2 = 'http://localhost:8000/api/usuarios/' + idUsuario2 + '/'
         response1 = requests.get(url1)
         response2 = requests.get(url2)
         if response1.status_code != 200 or response2.status_code != 200:

@@ -23,8 +23,7 @@ collection_usuarios = dbname["usuarios"]
 @api_view(['GET'])
 def obtener_hora_local(request, idUsuario):
     if request.method == 'GET':
-        #Devuelve donde coño vive el usuario
-        url1 = 'http://localhost:8000/api/usuarios/compradores_de/' + idUsuario + '/'
+        url1 = 'http://localhost:8000/api/usuarios/' + idUsuario + '/'
         response = requests.get(url1)
         if response.status_code != 200:
             return JsonResponse({'message': 'Error al obtener el usuario'}, status=status.HTTP_400_BAD_REQUEST)
