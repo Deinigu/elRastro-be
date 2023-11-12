@@ -3,15 +3,18 @@
 Aplicación web de compraventa de productos mediante subasta para la asignatura 'Ingeniería Web', impartida en el cuarto curso de la carrera Ingeniería del Software en la Universidad de Málaga. 
 - Backend realizado con Python usando el framework Django y MongoDB como base de datos no relacional
 - Frontend en proceso de realización usando la tecnología Angular
-
 ## Grupo A4
 - Calvo Díaz, Fernando
 - Colbert Eastgate, Lucas
 - López Reduello, Diego
 - Moya Castillo, Miguel
 - Sánchez Ibáñez, Alba
-
 ## Instalación:
+### Clonar el repositorio
+Clonamos el repositorio con el siguiente comando:
+```
+git clone https://github.com/Deinigu/elRastro
+```
 ### Virtual Environment
 Es recomendable crear un "virtual environment" donde instalar todas las dependencias, para ello seguimos los siguientes pasos:
 
@@ -23,79 +26,38 @@ Es recomendable crear un "virtual environment" donde instalar todas las dependen
     ```
     ./MyEnv/Scripts/activate
     ```
-### Dependencias
+### Ejecución automática (Solo Windows)
+El archivo executable.bat que hay en el directorio raíz del repositorio realiza la instalación de todas las dependencias, las migraciones necesarias y ejecuta en su correspondientes puertos los microservicios. Es necesario tener los puertos desde el 8000 al 8005 libres. Para ejecutarlo, basta con ejecutar el siguiente comando:
+    ```
+./executable.bat
+    ```
+### Ejecución manual
+#### Dependencias
 Una vez activado el virtual environment pasamos a instalar las dependencias con el siguiente comando:
-  
+  ```
     pip install -r requirements.txt
-
-### Ejecutar el proyecto
+  ```
+#### Migraciones
+Una vez hecho esto migraremos todas las entidades necesarias de cada microservicio de la base de datos:
+```
+python usuarios\manage.py migrate
+python productos\manage.py migrate
+python pujas\manage.py migrate
+python huellaDeCarbono\manage.py migrate
+python horaLocal\manage.py migrate
+python cambiomoneda\manage.py migrate
+```
+#### Ejecutar el proyecto
 Ahora podemos ejecutar el proyecto para probar todas sus funciones, tendremos que ejectuar cada microservicio en un puerto distinto si queremos ejecutarlos todos a la vez
    ```
    python manage.py runserver 127.0.0.1:PUERTO
    ```
-
-# Como crear un proyecto en Django (y aplicación)
-
-1. Crear el proyecto
-      ```
-      django-admin startproject nombreDelProyecto
-      ```
-
-2. Crear la aplicación
-      ```
-      cd nombreDelProyecto
-      python manage.py startapp nombreDeLaAplicación
-      ```
-
-3. Añadir la aplicación a INSTALLED_APPS en settings.py (y otras que usemos)
-   ```
-   INSTALLED_APPS = [
-    'rest_framework',
-    'elrastroapp',
-    'corsheaders',
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-   ]
-   ```
-
-4. Crear un serializer
-   
-6. Crear un urls.py en la aplicación
-   ```
-   from django.urls import path
-   from elrastroapp import views
-   
-   urlpatterns = [
-   
-       # PUJAS
-       path('api/pujas', views.pujas_list_view),
-   ]
-   ```
-8. Añadir las urls de la aplicación al urls.py del proyecto
-   ```
-   from django.contrib import admin
-   from django.urls import path, include
-   
-   urlpatterns = [
-       path('admin/', admin.site.urls),
-       path('', include('elrastroapp.urls')),
-   ]
-   ```
-9. Crear las views importando la base de datos y colección
-   ```
-   # ----------------------------------------  VISTAS DE LA APLICACIÓN ------------------------------
-   # Conexión a la base de datos MongoDB
-   my_client = pymongo.MongoClient('mongodb+srv://usuario:usuario@elrastrodb.oqjmaaw.mongodb.net/')
-   
-   # Nombre de la base de datos
-   dbname = my_client['ElRastro']
-   
-   # Colecciones
-   collection_usuarios = dbname["usuarios"]
-   ```
-
-   
+La ejecución recomendada de los microservicios con sus respectivos puertos es la siguiente:
+```
+python usuarios\manage.py runserver 8000
+python productos\manage.py runserver 8001
+python pujas\manage.py runserver 8002
+python huellaDeCarbono\manage.py runserver 8003
+python horaLocal\manage.py runserver 8004
+python cambiomoneda\manage.py runserver 8005
+```
