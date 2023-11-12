@@ -1,6 +1,8 @@
 # elRastro
 ## Descripción
-Aplicación para la asignatura Ingeniería Web.
+Aplicación web de compraventa de productos mediante subasta.
+Realizado para la asignatura 'Ingeniería Web', impartida en el cuarto curso de la carrera Ingeniería del Software en la Universidad de Málaga.
+
 ## Grupo A4
 - Calvo Díaz, Fernando
 - Colbert Eastgate, Lucas
