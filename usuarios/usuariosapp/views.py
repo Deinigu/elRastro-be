@@ -55,9 +55,7 @@ def usuarios_list_view(request):
           
 @api_view(['GET', 'PUT', 'DELETE'])
 def view_usuario(request, usuario_id=None):
-    print(request.method)
     if request.method == 'GET':
-        print("GETTT")
         if usuario_id:
             # READ USER 
             usuario = collection_usuarios.find_one({'_id': ObjectId(usuario_id)})
@@ -83,7 +81,6 @@ def view_usuario(request, usuario_id=None):
             return Response({"error": "Usuario no encontrado"}, status=status.HTTP_404_NOT_FOUND)
 
     elif request.method == 'DELETE':
-        print("DELETE")
         if usuario_id:
             # DELETE USER
             result = collection_usuarios.delete_one({'_id': ObjectId(usuario_id)})
@@ -100,7 +97,6 @@ def transform_user_ids(usuario):
 # Crear un usuario
 @api_view(['POST'])
 def create_usuario_view(request):
-    print("ENTRA")
     if request.method == 'POST':
         data = request.data
 
@@ -180,19 +176,14 @@ def compradores_usuario_view(request, usuario_id):
         response = requests.get(url)
         if response.status_code == 200:
             productos = response.json()
-            print(len(productos))
             for producto in productos:
                 url = 'http://localhost:8002/api/pujas/ultima_puja/producto/' + str(producto['_id'])
                 response = requests.get(url)
                 if response.status_code == 200:
                     puja = response.json()
-                    print(puja['pujador'])
                     if puja['pujador'] not in compradores:
-                        print("HOLAAAA")
                         compradores.append(ObjectId(puja['pujador']))
-            print(compradores)
             usuarios = list(collection_usuarios.find({'_id': {'$in': compradores}}))
-            print(usuarios)
             for usuario in usuarios:
                 usuario['_id'] = str(ObjectId(usuario.get('_id',[])))
                 usuario['listaConver'] = [str(ObjectId(id)) for id in usuario.get('listaConver', [])]

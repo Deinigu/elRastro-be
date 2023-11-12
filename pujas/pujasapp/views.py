@@ -165,8 +165,6 @@ def direccion_pujador(request, puja_id):
                 response = requests.get(url)
                 if response.status_code == 200:
                     usuario = response.json()
-                    print("HOLA")
-                    print(usuario)
                     if usuario:
                         direccion = usuario.get('vivienda')
                         return Response({"direccion": direccion}, status=status.HTTP_200_OK)
