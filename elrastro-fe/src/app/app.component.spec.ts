@@ -14,16 +14,16 @@ describe('AppComponent', () => {
     expect(app).toBeTruthy();
   });
 
-  it(`should have the 'elRastro-angular' title`, () => {
+  it(`should have the 'elrastro-fe' title`, () => {
     const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.componentInstance;
-    expect(app.title).toEqual('elRastro-angular');
+    expect(app.title).toEqual('elrastro-fe');
   });
 
   it('should render title', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, elRastro-angular');
+    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, elrastro-fe');
   });
 });

@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "elRastro-angular": {
+    "elrastro-fe": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -13,7 +13,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
-            "outputPath": "dist/el-rastro-angular",
+            "outputPath": "dist/elrastro-fe",
             "index": "src/index.html",
             "browser": "src/main.ts",
             "polyfills": [
@@ -57,10 +57,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "elRastro-angular:build:production"
+              "buildTarget": "elrastro-fe:build:production"
             },
             "development": {
-              "buildTarget": "elRastro-angular:build:development"
+              "buildTarget": "elrastro-fe:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -68,7 +68,7 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "buildTarget": "elRastro-angular:build"
+            "buildTarget": "elrastro-fe:build"
           }
         },
         "test": {
