@@ -1,6 +1,7 @@
 from django.shortcuts import render
 
 from usuariosapp.serializers import UsuarioSerializer
+from usuariosapp.serializers import ValoracionSerializer
 
 import pymongo
 import requests
@@ -24,112 +25,179 @@ from django.shortcuts import render, get_object_or_404
 my_client = pymongo.MongoClient('mongodb+srv://usuario:usuario@elrastrodb.oqjmaaw.mongodb.net/')
 
 # Nombre de la base de datos
-dbname = my_client['ElRastro']
+dbname = my_client['ElRastro-SegundaEntrega']
 
 # Colecciones
 collection_usuarios = dbname["usuarios"]
 
+print(dbname.list_collection_names())
+
 # Create your views here.
 # -------------------------------------  VISTAS DE USUARIOS ----------------------------------------
 
-# OBTENER LISTA DE USUARIOS 
-
-@api_view(['GET'])
-def usuarios_list_view(request):
+#Obtener la lista de usuarios y crear un usuario
+@api_view(['GET', 'POST'])
+def lista_usuarios_crear(request):
     if request.method == 'GET':
         usuarios = list(collection_usuarios.find({}))
-
-        # Pasar los ObjectId a String antes de pasar el serializer
         for usuario in usuarios:
-            usuario['_id'] = str(ObjectId(usuario.get('_id',[])))
-            usuario['listaConver'] = [str(ObjectId(id)) for id in usuario.get('listaConver', [])]
-            usuario['productosVenta'] = [str(ObjectId(id)) for id in usuario.get('productosVenta', [])]
-
+            usuario['_id'] = str(usuario.get('_id',[]))
+            usuario['listaConver'] = [str(id) for id in usuario.get('listaConver', [])]
+            usuario['productosVenta'] = [str(id) for id in usuario.get('productosVenta', [])]
+            valoraciones = usuario.get('valoraciones', [])
+            valoraciones_serializer = ValoracionSerializer(data=valoraciones, many=True)
+            if valoraciones_serializer.is_valid():
+                usuario['valoraciones'] = valoraciones_serializer.data
+            else:
+                return Response(valoraciones_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         serializer = UsuarioSerializer(data=usuarios, many=True)
         if serializer.is_valid():
             json_data = serializer.data
             return Response(json_data, status=status.HTTP_200_OK)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-          
-@api_view(['GET', 'PUT', 'DELETE'])
-def view_usuario(request, usuario_id=None):
-    if request.method == 'GET':
-        if usuario_id:
-            # READ USER 
-            usuario = collection_usuarios.find_one({'_id': ObjectId(usuario_id)})
-            if usuario:
-                usuario = transform_user_ids(usuario)
-                usuario['_id'] = str(ObjectId(usuario.get('_id',[])))
-                serializer = UsuarioSerializer(data=usuario)
-                if serializer.is_valid():
-                    return Response(serializer.data, status=status.HTTP_200_OK)
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-            return Response({"error": "Usuario no encontrado"}, status=status.HTTP_404_NOT_FOUND)
-
-    elif request.method == 'PUT':
-        if usuario_id:
-            # UPDATE USER 
-            data = request.data
-            usuario = collection_usuarios.find_one({'_id': ObjectId(usuario_id)})
-            if usuario:
-                for key, value in data.items():
-                    usuario[key] = value
-                collection_usuarios.save(usuario)
-                return Response({"message": "Usuario actualizado con éxito"}, status=status.HTTP_200_OK)
-            return Response({"error": "Usuario no encontrado"}, status=status.HTTP_404_NOT_FOUND)
-
-    elif request.method == 'DELETE':
-        if usuario_id:
-            # DELETE USER
-            result = collection_usuarios.delete_one({'_id': ObjectId(usuario_id)})
-            if result.deleted_count == 1:
-                return Response({"message": "Usuario eliminado con éxito"}, status=status.HTTP_204_NO_CONTENT)
-            return Response({"error": "Usuario no encontrado"}, status=status.HTTP_404_NOT_FOUND)
-
-def transform_user_ids(usuario):
-    usuario['listaConver'] = [str(ObjectId(id)) for id in usuario.get('listaConver', [])]
-    usuario['productosVenta'] = [str(ObjectId(id)) for id in usuario.get('productosVenta', [])]
-    return usuario
-
-
-# Crear un usuario
-@api_view(['POST'])
-def create_usuario_view(request):
-    if request.method == 'POST':
-        data = request.data
-
-        nombreUsuario = data.get("nombreUsuario")
-        correo = data.get("correo")
-        fotoURL = data.get("fotoURL")
-        reputacion = 0.0
-        telefono = data.get("telefono")
-        vivienda = data.get("vivienda")
-        contrasenya = data.get("contrasenya")
-
-        usuario = {
-            "_id": ObjectId(),
-            "nombreUsuario": nombreUsuario,
-            "correo": correo,
-            "fotoURL": fotoURL,
-            "listaConver": [],
-            "productosVenta": [],
-            "reputacion": float(reputacion),
-            "telefono": telefono,
-            "vivienda": vivienda,
-            "contrasenya": contrasenya
-        }
-
-        result = collection_usuarios.insert_one(usuario)
-        if result.acknowledged:
-            return Response({"message": "Usuario creado con éxito",},
-                            status=status.HTTP_201_CREATED)
+    elif request.method == 'POST':
+        serializer = UsuarioSerializer(data=request.data)
+        if serializer.is_valid():
+            usuario = serializer.validated_data
+            existing_user = collection_usuarios.find_one({'correo': usuario['correo']})
+            if existing_user is not None:
+                return Response({"error": "Ya existe un usuario con ese correo."},
+                                status=status.HTTP_400_BAD_REQUEST)
+            usuario['_id'] = ObjectId()
+            usuario['listaConver'] = []
+            usuario['productosVenta'] = []
+            usuario['reputacion'] = 0.0
+            usuario['valoraciones'] = []
+            result = collection_usuarios.insert_one(usuario)
+            if result.acknowledged:
+                return Response({"message": "Usuario creado con éxito",},
+                                status=status.HTTP_201_CREATED)
+            else:
+                return Response({"error": "Algo salió mal. Usuario no creado."},
+                                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
-            return Response({"error": "Algo salió mal. Usuario no creado."},
-                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+#Obtener un usuario, borrar un usuario o actualizar un usuario
+@api_view(['GET', 'DELETE', 'PUT'])
+def view_usuario(request, usuario_id):
+    usuario = collection_usuarios.find_one({'_id': ObjectId(usuario_id)})
+    if usuario:
+        if request.method == 'GET':
+            usuario['_id'] = str(ObjectId(usuario.get('_id',[])))
+            usuario['listaConver'] = [str(ObjectId(id)) for id in usuario.get('listaConver', [])]
+            usuario['productosVenta'] = [str(ObjectId(id)) for id in usuario.get('productosVenta', [])]
+            valoraciones = usuario.get('valoraciones', [])
+            valoraciones_serializer = ValoracionSerializer(data=valoraciones, many=True)
+            if valoraciones_serializer.is_valid():
+                usuario['valoraciones'] = valoraciones_serializer.data
+            else:
+                return Response(valoraciones_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            serializer = UsuarioSerializer(data=usuario)
+            if serializer.is_valid():
+                json_data = serializer.data
+                return Response(json_data, status=status.HTTP_200_OK)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            
+        elif request.method == 'DELETE':
+            result = collection_usuarios.delete_one({'_id': ObjectId(usuario_id)})
+            if result.acknowledged:
+                return Response({"message": "Usuario eliminado con éxito",},
+                                status=status.HTTP_200_OK)
+            else:
+                return Response({"error": "Algo salió mal. Usuario no eliminado."},
+                                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        elif request.method == 'PUT':
+            serializer = UsuarioSerializer(data=request.data)
+            if serializer.is_valid():
+                usuario = serializer.validated_data
+                usuario['_id'] = ObjectId(usuario_id)
+                result = collection_usuarios.replace_one({'_id': ObjectId(usuario_id)}, usuario)
+                if result.acknowledged:
+                    return Response({"message": "Usuario actualizado con éxito",},
+                                    status=status.HTTP_200_OK)
+                else:
+                    return Response({"error": "Algo salió mal. Usuario no actualizado."},
+                                    status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    else:
+        return Response({"error": "Usuario no encontrado"}, status=status.HTTP_404_NOT_FOUND)
+    
+
 # -------------------------------------  BÚSQUEDAS PARAMETRIZADAS ----------------------------------------
+
+#Añadir un producto a la lista de productos en venta de un usuario
+@api_view(['PUT'])
+def add_producto_venta_view(request, usuario_id, producto_id):
+    if request.method == 'PUT':
+        usuario = collection_usuarios.find_one({'_id': ObjectId(usuario_id)})
+        if usuario:
+            usuario['productosVenta'].append(producto_id)
+            result = collection_usuarios.replace_one({'_id': ObjectId(usuario_id)}, usuario)
+            if result.acknowledged:
+                return Response({"message": "Producto añadido a la lista de productos en venta con éxito",},
+                                status=status.HTTP_200_OK)
+            else:
+                return Response({"error": "Algo salió mal. Producto no añadido a la lista de productos en venta."},
+                                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else:
+            return Response({"error": "Usuario no encontrado"}, status=status.HTTP_404_NOT_FOUND)
+        
+#Eliminar un producto de la lista de productos en venta de un usuario
+@api_view(['PUT'])
+def delete_producto_venta_view(request, usuario_id, producto_id):
+    if request.method == 'PUT':
+        usuario = collection_usuarios.find_one({'_id': ObjectId(usuario_id)})
+        if usuario:
+            usuario['productosVenta'].remove(producto_id)
+            result = collection_usuarios.replace_one({'_id': ObjectId(usuario_id)}, usuario)
+            if result.acknowledged:
+                return Response({"message": "Producto eliminado de la lista de productos en venta con éxito",},
+                                status=status.HTTP_200_OK)
+            else:
+                return Response({"error": "Algo salió mal. Producto no eliminado de la lista de productos en venta."},
+                                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else:
+            return Response({"error": "Usuario no encontrado"}, status=status.HTTP_404_NOT_FOUND)
+
+#Añade una conversacion a la lista de conversaciones de un usuario
+@api_view(['PUT'])
+def add_conversacion(request, usuario_id, conversacion_id):
+    if request.method == 'PUT':
+        print(usuario_id)
+        usuario = collection_usuarios.find_one({'_id': ObjectId(usuario_id)})
+        if usuario:
+            usuario['listaConver'].append(conversacion_id)
+            result = collection_usuarios.replace_one({'_id': ObjectId(usuario_id)}, usuario)
+            if result.acknowledged:
+                return Response({"message": "Conversacion añadida a la lista de conversaciones con éxito",},
+                                status=status.HTTP_200_OK)
+            else:
+                return Response({"error": "Algo salió mal. Conversacion no añadida a la lista de conversaciones."},
+                                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else:
+            return Response({"error": "Usuario no encontrado"}, status=status.HTTP_404_NOT_FOUND)
+
+#Eliminar una conversacion de la lista de conversaciones de un usuario
+@api_view(['PUT'])
+def delete_conversacion(request, usuario_id, conversacion_id):
+    if request.method == 'PUT':
+        usuario = collection_usuarios.find_one({'_id': ObjectId(usuario_id)})
+        if usuario:
+            usuario['listaConver'].remove(conversacion_id)
+            result = collection_usuarios.replace_one({'_id': ObjectId(usuario_id)}, usuario)
+            if result.acknowledged:
+                return Response({"message": "Conversacion eliminada de la lista de conversaciones con éxito",},
+                                status=status.HTTP_200_OK)
+            else:
+                return Response({"error": "Algo salió mal. Conversacion no eliminada de la lista de conversaciones."},
+                                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else:
+            return Response({"error": "Usuario no encontrado"}, status=status.HTTP_404_NOT_FOUND)
+
 
 # Buscar usuarios cuya reputación sea mayor de un número dado.
 @api_view(['GET'])
@@ -140,6 +208,12 @@ def usuarios_mayor_reputacion_view(request, reputacion):
             usuario['_id'] = str(ObjectId(usuario.get('_id',[])))
             usuario['listaConver'] = [str(ObjectId(id)) for id in usuario.get('listaConver', [])]
             usuario['productosVenta'] = [str(ObjectId(id)) for id in usuario.get('productosVenta', [])]
+            valoraciones = usuario.get('valoraciones', [])
+            valoraciones_serializer = ValoracionSerializer(data=valoraciones, many=True)
+            if valoraciones_serializer.is_valid():
+                usuario['valoraciones'] = valoraciones_serializer.data
+            else:
+                return Response(valoraciones_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         usuario_serializer = UsuarioSerializer(data=usuarios , many=True)
         if usuario_serializer.is_valid():
@@ -157,6 +231,19 @@ def usuarios_menor_reputacion_view(request, reputacion):
             usuario['_id'] = str(ObjectId(usuario.get('_id',[])))
             usuario['listaConver'] = [str(ObjectId(id)) for id in usuario.get('listaConver', [])]
             usuario['productosVenta'] = [str(ObjectId(id)) for id in usuario.get('productosVenta', [])]
+            valoraciones = usuario.get('valoraciones', [])
+            valoraciones_serializer = ValoracionSerializer(data=valoraciones, many=True)
+            if valoraciones_serializer.is_valid():
+                usuario['valoraciones'] = valoraciones_serializer.data
+            else:
+                return Response(valoraciones_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+            serializer = UsuarioSerializer(data=usuario)
+            if serializer.is_valid():
+                json_data = serializer.data
+                return Response(json_data, status=status.HTTP_200_OK)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
         usuario_serializer = UsuarioSerializer(data=usuarios, many=True)
         if usuario_serializer.is_valid():
@@ -188,6 +275,13 @@ def compradores_usuario_view(request, usuario_id):
                 usuario['_id'] = str(ObjectId(usuario.get('_id',[])))
                 usuario['listaConver'] = [str(ObjectId(id)) for id in usuario.get('listaConver', [])]
                 usuario['productosVenta'] = [str(ObjectId(id)) for id in usuario.get('productosVenta', [])]
+                usuario['valoraciones'] = [str(ObjectId(id)) for id in usuario.get('valoraciones', [])]
+                serializer = UsuarioSerializer(data=usuario)
+                if serializer.is_valid():
+                    json_data = serializer.data
+                    return Response(json_data, status=status.HTTP_200_OK)
+                else:
+                    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             usuario_serializer = UsuarioSerializer(data=usuarios, many=True)
             if usuario_serializer.is_valid():
                 json_data = usuario_serializer.data 
