@@ -12,15 +12,15 @@ from rest_framework import status
 my_client = pymongo.MongoClient('mongodb+srv://usuario:usuario@elrastrodb.oqjmaaw.mongodb.net/')
 
 # Nombre de la base de datos
-dbname = my_client['ElRastro']
+dbname = my_client['ElRastro-SegundaEntrega']
 
 # Colecciones
 collection_pujas = dbname["pujas"]
 
 # -------------------------------------  VISTA DE LAS PUJAS ----------------------------------------
 
-# LISTA TODAS LAS PUJAS
-@api_view(['GET'])
+# LISTA TODAS LAS PUJAS y crea una puja y la agrega a la lista de pujas del producto
+@api_view(['GET', 'POST'])
 def pujas_list_view(request):
     if request.method == 'GET':
         pujas = list(collection_pujas.find({}))
@@ -37,58 +37,56 @@ def pujas_list_view(request):
             return Response(json_data, status=status.HTTP_200_OK)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    elif request.method == 'POST':
+        serializer = PujaSerializer(data=request.data)
+        if serializer.is_valid():
+            puja = serializer.validated_data
+            puja['_id'] = ObjectId()
+            puja['fecha'] = datetime.now()
+            puja['pujador'] = ObjectId(puja['pujador'])
+            puja['producto'] = ObjectId(puja['producto'])
+            puja['valor'] = float(puja['valor'])
 
-# DETALLES PUJA
-@api_view(['GET'])
+            result = collection_pujas.insert_one(puja)
+            if result.acknowledged:
+                url='http://localhost:8001/api/productos/add_puja/' + str(puja['producto']) + '/' + str(puja['_id']) + '/'
+                response = requests.put(url)
+                if response.status_code == 200:
+                    return Response({"message": "Puja creada"}, status=status.HTTP_201_CREATED)
+                else:
+                    return Response({"ERROR": "No se ha agregado correctamente al producto"}, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return Response({"ERROR": "Puja no creada"}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+
+@api_view(['GET', 'DELETE'])
 def puja_detail_view(request, puja_id):
     if request.method == 'GET':
         if puja_id:
             # READ PUJA 
             puja = collection_pujas.find_one({'_id': ObjectId(puja_id)})
-            puja['_id'] = str(ObjectId(puja.get('_id', [])))
-            puja['pujador'] = str(ObjectId(puja.get('pujador', [])))
-            puja['producto'] = str(ObjectId(puja.get('producto', [])))
+            if puja:
+                puja['_id'] = str(ObjectId(puja.get('_id', [])))
+                puja['pujador'] = str(ObjectId(puja.get('pujador', [])))
+                puja['producto'] = str(ObjectId(puja.get('producto', [])))
 
-            serializer = PujaSerializer(data=puja)
-            if serializer.is_valid():
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        return Response({"ERROR": "Puja no encontrada"}, status=status.HTTP_404_NOT_FOUND)
-      
-# BORRAR PUJA
-@api_view(['DELETE'])
-def puja_delete_view(request, puja_id):
-    if request.method == 'DELETE':
+                serializer = PujaSerializer(data=puja)
+                if serializer.is_valid():
+                    return Response(serializer.data, status=status.HTTP_200_OK)
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"ERROR": "Puja no encontrada"}, status=status.HTTP_404_NOT_FOUND)
+    
+    '''
+    elif request.method == 'DELETE':
         delete_data = collection_pujas.delete_one({'_id': ObjectId(puja_id)})
         if delete_data.deleted_count == 1:
             return Response({"mensaje": "Puja eliminada con éxito"}, status=status.HTTP_200_OK)
         else:
             return Response({"ERROR": "Puja no encontrada"}, status=status.HTTP_404_NOT_FOUND)
-        
-
-# CREAR PUJA
-@api_view(['POST'])
-def puja_create_view(request):
-    if request.method == 'POST':
-        data = request.data
-        pujador = data.get("pujador")
-        producto = data.get("producto")
-        valor = data.get("valor")
-        fecha = datetime.now()
-        puja = {
-            "_id": ObjectId(),
-            "pujador": ObjectId(pujador),
-            "valor": float(valor),
-            "fecha": fecha,
-            "producto": ObjectId(producto)
-        }
-        result = collection_pujas.insert_one(puja)
-        if result.acknowledged:
-            # Document was successfully created, return its ObjectId
-            return Response({"mensaje": "Puja creada con éxito"}, status=status.HTTP_201_CREATED)
-        else:
-            # Failed to create the document
-            return Response({"ERROR": "Puja no creada"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+       ''' 
     
 # UPDATE PUJA -- No tiene sentido poder actualizar una puja así que no hemos incluído esta función
 
