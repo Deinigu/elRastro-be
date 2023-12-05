@@ -172,3 +172,28 @@ def productos_menor_precio_view(request, precio):
             return Response(json_data, status=status.HTTP_200_OK)
         else:
             return Response(producto_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+#Buscar productos por una cadena de texto.
+#Si no encuentra ningun producto al principio, busca por palabras sueltas de longitud 4 o más.
+@api_view(['GET'])
+def productos_busqueda_view(request, cadena):
+    if request.method == 'GET':
+        productos = list(collection_productos.find({'$text': {'$search': cadena}}))
+        if not productos:
+            palabras = cadena.split()
+            for palabra in palabras:
+                if len(palabra) >= 4:
+                    productos = list(collection_productos.find({'$text': {'$search': palabra}}))
+                    if productos:
+                        break
+        for producto in productos:
+            producto['_id'] = str(ObjectId(producto.get('_id',[])))
+            producto['vendedor'] = str(ObjectId(producto.get('vendedor',[])))
+            producto['pujas'] = [str(ObjectId(puja)) for puja in producto.get('pujas',[])]
+        
+        producto_serializer = ProductoSerializer(data=productos, many=True)
+        if producto_serializer.is_valid():
+            json_data = producto_serializer.data 
+            return Response(json_data, status=status.HTTP_200_OK)
+        else:
+            return Response(producto_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
