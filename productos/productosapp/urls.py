@@ -11,5 +11,6 @@ urlpatterns = [
     path('api/productos/anteriores/<str:idUsuario>/', views.productos_usuario_anterior_view),
     path('api/productos/precio_menor/<str:precio>/', views.productos_menor_precio_view),
     path('api/productos/add_puja/<str:idProducto>/<str:idPuja>/', views.add_puja_view),
+    path('api/productos/busqueda/<str:cadena>/', views.productos_busqueda_view),
 ]
     
