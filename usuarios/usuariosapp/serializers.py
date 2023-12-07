@@ -15,5 +15,4 @@ class UsuarioSerializer(serializers.Serializer):
     valoraciones = ValoracionSerializer(many=True)
     telefono = serializers.CharField()
     vivienda = serializers.CharField()
-    contrasenya = serializers.CharField()
     nombreUsuario = serializers.CharField()
