@@ -5,7 +5,7 @@ class ProductoSerializer(serializers.Serializer):
     Nombre = serializers.CharField(max_length=100)
     descripcion = serializers.CharField()
     fecha = serializers.DateTimeField(required=False)
-    fotoURL = serializers.CharField()
+    fotoURL = serializers.ListField(child=serializers.CharField())
     precio = serializers.DecimalField(max_digits=6, decimal_places=2)
     tags = serializers.CharField(max_length = 200)
     vendedor = serializers.CharField(max_length = 24)
