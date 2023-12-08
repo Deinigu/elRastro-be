@@ -19,6 +19,7 @@ from rest_framework import status
 from pymongo import ReturnDocument
 
 from django.shortcuts import render, get_object_or_404
+from rest_framework.renderers import JSONRenderer
 
 # ----------------------------------------  VISTAS DE LA APLICACIÓN ------------------------------
 # Conexión a la base de datos MongoDB
@@ -52,8 +53,10 @@ def valoraciones_hechas(request, idUsuario):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
+
 #Devuelve las valoraciones hacia un usario en concreto
-def valoraciones_recividas(request, idUsuario):
+@api_view(['GET'])
+def valoraciones_recibidas(request, idUsuario):
     if request.method == 'GET':
         valoraciones = list(collection_valoraciones.find({"idValorado": ObjectId(idUsuario)}))
         for valoracion in valoraciones:
@@ -87,20 +90,17 @@ def crear_valoracion(request):
             http_request = HttpRequest()
             http_request.method = 'GET'
             http_request.user = request.user
-            valorado = valoraciones_recividas(http_request, valoracion['idValorado'])
+            valorado = valoraciones_recibidas(http_request, valoracion['idValorado'])
             reputacion = 0
             for v in valorado.data:
                 reputacion += v['puntuacion']
-                print(reputacion)
-            print(len(valorado.data))
             if len(valorado.data) > 0:
                 reputacion = reputacion / len(valorado.data)
-            print(reputacion)
             
             #Actualiza la reputacion del usuario
             perValorada = requests.get('http://localhost:8000/api/usuarios/' + str(valoracion['idValorado']) + '/')
             perValorada = perValorada.json()
-            print(perValorada)
+            reputacion = round(reputacion, 2)
             perValorada['reputacion'] = reputacion
             res = requests.put('http://localhost:8000/api/usuarios/update/' + str(perValorada['_id']) + '/', json=perValorada)
             if result.acknowledged and res.status_code == status.HTTP_200_OK:
