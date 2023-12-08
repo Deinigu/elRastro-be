@@ -41,12 +41,31 @@ def conversaciones_list(request, usuarioId):
             c['_id'] = str(c['_id'])
             c['usuario1'] = str(c['usuario1'])
             c['usuario2'] = str(c['usuario2'])
+            c['productoId'] = str(c['productoId'])
         conversaciones_serializer = ConversacionSerializer(data=conversaciones, many=True)
         if conversaciones_serializer.is_valid():
             return Response(conversaciones_serializer.data, status=status.HTTP_200_OK)
         else:
             return Response(conversaciones_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
+#Devuelve una conversacion dada su id
+@api_view(['GET'])
+def conversacion_detail(request, conversacionId):
+    if request.method == 'GET':
+        conversacion = collection_conversaciones.find_one({'_id':ObjectId(conversacionId)})
+        if conversacion:
+            conversacion['_id'] = str(conversacion['_id'])
+            conversacion['usuario1'] = str(conversacion['usuario1'])
+            conversacion['usuario2'] = str(conversacion['usuario2'])
+            conversacion['productoId'] = str(conversacion['productoId'])
+            conversaciones_serializer = ConversacionSerializer(data=conversacion)
+            if conversaciones_serializer.is_valid():
+                return Response(conversaciones_serializer.data, status=status.HTTP_200_OK)
+            else:
+                return Response(conversaciones_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({"error": "Conversacion no encontrada."}, status=status.HTTP_404_NOT_FOUND)
+
 
 #Crea una conversacion entre dos usuarios y la agrega a lista de conversaciones de los usuarios
 @api_view(['POST'])
@@ -55,9 +74,9 @@ def conversaciones_create(request):
         usuario1 = request.data.get('usuario1')
         usuario2 = request.data.get('usuario2')
         # Comprobar si ya existe una conversación entre los dos usuarios
-        existing_conversation = collection_conversaciones.find_one({'$or': [{'usuario1': usuario1, 'usuario2': usuario2}, {'usuario1': usuario2, 'usuario2': usuario1}]})
-        if existing_conversation:
-            return Response({"error": "Ya existe una conversación entre estos dos usuarios."}, status=status.HTTP_400_BAD_REQUEST)
+        #existing_conversation = collection_conversaciones.find_one({'$or': [{'usuario1': usuario1, 'usuario2': usuario2}, {'usuario1': usuario2, 'usuario2': usuario1}]})
+        #if existing_conversation:
+        #   return Response({"error": "Ya existe una conversación entre estos dos usuarios."}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = ConversacionSerializer(data=request.data)
         if serializer.is_valid():
@@ -65,6 +84,7 @@ def conversaciones_create(request):
             conversacion_data['_id'] = ObjectId()
             conversacion_data['usuario1'] = ObjectId(usuario1)                                                     
             conversacion_data['usuario2'] = ObjectId(usuario2)
+            conversacion_data['productoId'] = ObjectId(conversacion_data['productoId'])
             conversacion_data['chats'] = []
             
             result = collection_conversaciones.insert_one(conversacion_data)

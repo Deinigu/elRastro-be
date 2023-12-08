@@ -1,7 +1,6 @@
 from django.shortcuts import render
 
 from usuariosapp.serializers import UsuarioSerializer
-from usuariosapp.serializers import ValoracionSerializer
 
 import pymongo
 import requests
@@ -44,12 +43,7 @@ def lista_usuarios_crear(request):
             usuario['_id'] = str(usuario.get('_id',[]))
             usuario['listaConver'] = [str(id) for id in usuario.get('listaConver', [])]
             usuario['productosVenta'] = [str(id) for id in usuario.get('productosVenta', [])]
-            valoraciones = usuario.get('valoraciones', [])
-            valoraciones_serializer = ValoracionSerializer(data=valoraciones, many=True)
-            if valoraciones_serializer.is_valid():
-                usuario['valoraciones'] = valoraciones_serializer.data
-            else:
-                return Response(valoraciones_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            
         serializer = UsuarioSerializer(data=usuarios, many=True)
         if serializer.is_valid():
             json_data = serializer.data
@@ -68,7 +62,6 @@ def lista_usuarios_crear(request):
             usuario['listaConver'] = []
             usuario['productosVenta'] = []
             usuario['reputacion'] = 0.0
-            usuario['valoraciones'] = []
             result = collection_usuarios.insert_one(usuario)
             if result.acknowledged:
                 return Response({"message": "Usuario creado con éxito",},
@@ -88,12 +81,6 @@ def view_usuario(request, usuario_id):
             usuario['_id'] = str(ObjectId(usuario.get('_id',[])))
             usuario['listaConver'] = [str(ObjectId(id)) for id in usuario.get('listaConver', [])]
             usuario['productosVenta'] = [str(ObjectId(id)) for id in usuario.get('productosVenta', [])]
-            valoraciones = usuario.get('valoraciones', [])
-            valoraciones_serializer = ValoracionSerializer(data=valoraciones, many=True)
-            if valoraciones_serializer.is_valid():
-                usuario['valoraciones'] = valoraciones_serializer.data
-            else:
-                return Response(valoraciones_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             serializer = UsuarioSerializer(data=usuario)
             if serializer.is_valid():
                 json_data = serializer.data
@@ -208,13 +195,6 @@ def usuarios_mayor_reputacion_view(request, reputacion):
             usuario['_id'] = str(ObjectId(usuario.get('_id',[])))
             usuario['listaConver'] = [str(ObjectId(id)) for id in usuario.get('listaConver', [])]
             usuario['productosVenta'] = [str(ObjectId(id)) for id in usuario.get('productosVenta', [])]
-            valoraciones = usuario.get('valoraciones', [])
-            valoraciones_serializer = ValoracionSerializer(data=valoraciones, many=True)
-            if valoraciones_serializer.is_valid():
-                usuario['valoraciones'] = valoraciones_serializer.data
-            else:
-                return Response(valoraciones_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
         usuario_serializer = UsuarioSerializer(data=usuarios , many=True)
         if usuario_serializer.is_valid():
             json_data = usuario_serializer.data 
@@ -231,13 +211,6 @@ def usuarios_menor_reputacion_view(request, reputacion):
             usuario['_id'] = str(ObjectId(usuario.get('_id',[])))
             usuario['listaConver'] = [str(ObjectId(id)) for id in usuario.get('listaConver', [])]
             usuario['productosVenta'] = [str(ObjectId(id)) for id in usuario.get('productosVenta', [])]
-            valoraciones = usuario.get('valoraciones', [])
-            valoraciones_serializer = ValoracionSerializer(data=valoraciones, many=True)
-            if valoraciones_serializer.is_valid():
-                usuario['valoraciones'] = valoraciones_serializer.data
-            else:
-                return Response(valoraciones_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
             serializer = UsuarioSerializer(data=usuario)
             if serializer.is_valid():
                 json_data = serializer.data
@@ -275,7 +248,6 @@ def compradores_usuario_view(request, usuario_id):
                 usuario['_id'] = str(ObjectId(usuario.get('_id',[])))
                 usuario['listaConver'] = [str(ObjectId(id)) for id in usuario.get('listaConver', [])]
                 usuario['productosVenta'] = [str(ObjectId(id)) for id in usuario.get('productosVenta', [])]
-                usuario['valoraciones'] = [str(ObjectId(id)) for id in usuario.get('valoraciones', [])]
                 serializer = UsuarioSerializer(data=usuario)
                 if serializer.is_valid():
                     json_data = serializer.data

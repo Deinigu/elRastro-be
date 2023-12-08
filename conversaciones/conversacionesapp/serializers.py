@@ -9,4 +9,5 @@ class ConversacionSerializer(serializers.Serializer):
     _id = serializers.CharField(required=False)
     usuario1 = serializers.CharField(required=True)
     usuario2 = serializers.CharField(required=True)
+    productoId = serializers.CharField(required=True)
     chats = ChatSerializer(many=True, required=False)
