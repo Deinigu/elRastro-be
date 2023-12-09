@@ -34,8 +34,7 @@ collection_productos = dbname["productos"]
 @api_view(['GET', 'POST'])
 def productos_list_view(request):
     if request.method == 'GET':
-        productos = list(collection_productos.find({}))
-        
+        productos = list(collection_productos.find({}).sort('fecha', pymongo.DESCENDING))        
         for p in productos:
             p['_id'] = str(ObjectId(p.get('_id',[])))
             p['vendedor'] = str(ObjectId(p.get('vendedor',[])))
