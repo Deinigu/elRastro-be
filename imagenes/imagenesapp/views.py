@@ -18,20 +18,24 @@ from rest_framework import status
 
 @api_view(['POST'])
 def upload_image(request):
-    if request.method == 'POST' and request.FILES['image']:
-        uploaded_file = request.FILES['image']
+    if request.method == 'POST' and request.FILES.getlist('images'):
+        uploaded_files = request.FILES.getlist('images')
+        uploaded_urls = []
 
-        # Upload to Cloudinary
+        # Upload each image to Cloudinary
         cloudinary.config(
                 cloud_name="dx4oicqhy",
                 api_key="765172224316842",
                 api_secret="ojkOD6jTPcuYjU5Z_77do1AI-VY"
             )
-        upload_result = cloudinary.uploader.upload(uploaded_file)
 
-            # Store Cloudinary URL in MongoDB
-            # (Implement your MongoDB logic here)
+        for file in uploaded_files:
+            upload_result = cloudinary.uploader.upload(
+                file,
+                folder='elRastro_cloudinary_folder'
+            )
+            uploaded_urls.append(upload_result['secure_url'])
 
-        return JsonResponse({'url': upload_result['secure_url']})
+        return JsonResponse({'urls': uploaded_urls})
     return HttpResponse(status=400)
 
