@@ -35,7 +35,6 @@ def upload_image(request):
                 folder='elRastro_cloudinary_folder'
             )
             uploaded_urls.append(upload_result['secure_url'])
-
         return JsonResponse({'urls': uploaded_urls})
     return HttpResponse(status=400)
 
