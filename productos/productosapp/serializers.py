@@ -7,7 +7,7 @@ class ProductoSerializer(serializers.Serializer):
     fecha = serializers.DateTimeField(required=False)
     fotoURL = serializers.ListField(child=serializers.CharField())
     precio = serializers.DecimalField(max_digits=6, decimal_places=2)
-    tags = serializers.CharField(max_length = 200)
+    tags = serializers.ListField(child=serializers.CharField())
     vendedor = serializers.CharField(max_length = 24)
     cierre = serializers.DateTimeField()
     pujas = serializers.ListField(child=serializers.CharField(), required=False)
