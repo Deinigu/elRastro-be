@@ -104,8 +104,11 @@ def producto_view(request, idProducto):
         serializer = ProductoSerializer(data=request.data)
         if serializer.is_valid():
             producto = serializer.validated_data
+            old_producto = collection_productos.find_one({'_id': ObjectId(idProducto)})
             producto['_id'] = ObjectId(idProducto)
             producto['precio'] = float(producto['precio'])
+            producto['fecha'] = datetime.now()
+            producto['pujas'] = old_producto['pujas']
             
             result = collection_productos.replace_one({'_id': ObjectId(idProducto)}, producto)
             if result.acknowledged:
