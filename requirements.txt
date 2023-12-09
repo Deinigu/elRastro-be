@@ -10,3 +10,4 @@ python-dateutil
 geopy
 requests
 djangorestframework-simplejwt
+cloudinary
