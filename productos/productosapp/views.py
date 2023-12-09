@@ -178,6 +178,7 @@ def productos_menor_precio_view(request, precio):
 @api_view(['GET'])
 def productos_busqueda_view(request, cadena):
     if request.method == 'GET':
+        collection_productos.create_index([("Nombre", "text")], name="Nombre_text")
         productos = list(collection_productos.find({'$text': {'$search': cadena}}))
         if not productos:
             palabras = cadena.split()
@@ -186,6 +187,11 @@ def productos_busqueda_view(request, cadena):
                     productos = list(collection_productos.find({'$text': {'$search': palabra}}))
                     if productos:
                         break
+                    else:
+                        for palabra in palabras:
+                            productos = list(collection_productos.find({'tags': {'$elemMatch': {'$eq': palabra}}}))
+                            if productos:
+                                break
         for producto in productos:
             producto['_id'] = str(ObjectId(producto.get('_id',[])))
             producto['vendedor'] = str(ObjectId(producto.get('vendedor',[])))
