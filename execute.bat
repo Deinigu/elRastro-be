@@ -23,7 +23,7 @@ python cambiomoneda\manage.py migrate
 start cmd /k python cambiomoneda\manage.py runserver 8005
 
 python conversaciones\manage.py migrate
-start cmd /k python cambiomoneda\manage.py runserver 8006
+start cmd /k python conversaciones\manage.py runserver 8006
 
 python valoraciones\manage.py migrate
 start cmd /k python valoraciones\manage.py runserver 8007
