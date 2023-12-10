@@ -9,3 +9,5 @@ psycopg2
 python-dateutil
 geopy
 requests
+djangorestframework-simplejwt
+cloudinary

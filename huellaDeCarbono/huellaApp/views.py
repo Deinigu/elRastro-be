@@ -60,3 +60,29 @@ def huellaDeCarbono(request, idUsuario1, idUsuario2):
             'tasa_emisiones': f"{round(huella_carbono * 0.01, 2)}"
         }
         return JsonResponse(response_data, content_type='application/json', json_dumps_params={'ensure_ascii': False})
+    
+
+# Devuelve la latitud y longitud de una dirección postal .
+@api_view(['GET'])
+def getCoordenadas(request, idUsuario):
+    if request.method == 'GET':
+        url1 = 'http://localhost:8000/api/usuarios/' + idUsuario + '/'
+        response = requests.get(url1)
+        if response.status_code != 200:
+            return JsonResponse({'message': 'Error al obtener el usuario'}, status=status.HTTP_400_BAD_REQUEST)
+                
+        usuario1 = response.json()
+        direccion = usuario1['vivienda']
+
+        # Crea una instancia del geocodificador de Nominatim
+        geolocator = Nominatim(user_agent="my_geocoder")
+
+        # Obtiene las coordenadas geográficas de la dirección postal
+        ubicacion = geolocator.geocode(direccion)
+        coordenadas = (ubicacion.latitude, ubicacion.longitude)
+
+        response_data = {
+            'latitud': f"{coordenadas[0]}",
+            'longitud': f"{coordenadas[1]}"
+        }
+        return JsonResponse(response_data, content_type='application/json', json_dumps_params={'ensure_ascii': False})

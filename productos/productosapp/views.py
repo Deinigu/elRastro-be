@@ -1,6 +1,8 @@
 from productosapp.serializers import  ProductoSerializer
 
 import pymongo
+import requests
+import json
 
 from datetime import datetime
 from dateutil import parser
@@ -22,19 +24,17 @@ from django.shortcuts import render, get_object_or_404
 my_client = pymongo.MongoClient('mongodb+srv://usuario:usuario@elrastrodb.oqjmaaw.mongodb.net/')
 
 # Nombre de la base de datos
-dbname = my_client['ElRastro']
+dbname = my_client['ElRastro-SegundaEntrega']
 
 # Colecciones
 collection_productos = dbname["productos"]
 
 # -------------------------------------  VISTAS DE PRODUCTO ----------------------------------------
 # Lista con todos los productos
-@api_view(['GET'])
+@api_view(['GET', 'POST'])
 def productos_list_view(request):
     if request.method == 'GET':
-        productos = list(collection_productos.find({}))
-        
-        # Transformar los objectid en strings
+        productos = list(collection_productos.find({}).sort('fecha', pymongo.DESCENDING))        
         for p in productos:
             p['_id'] = str(ObjectId(p.get('_id',[])))
             p['vendedor'] = str(ObjectId(p.get('vendedor',[])))
@@ -47,9 +47,31 @@ def productos_list_view(request):
         else:
             return Response(productos_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-# Detalles de un producto
-@api_view(['GET'])
-def productos_detail_view(request, idProducto):
+    elif request.method == 'POST':
+        serializer = ProductoSerializer(data=request.data)
+        if serializer.is_valid():
+            producto = serializer.validated_data
+            producto['_id'] = ObjectId()
+            producto['fecha'] = datetime.now()
+            producto['pujas'] = []
+            producto['precio'] = float(producto['precio'])  # Convertir Decimal a float
+            producto['vendedor'] = ObjectId(producto['vendedor'])
+
+            result = collection_productos.insert_one(producto)
+            if result.acknowledged:
+                url = 'http://localhost:8000/api/usuarios/add_producto/' + str(producto['vendedor']) + '/' + str(producto['_id']) + '/'                
+                response = requests.put(url)
+                if response.status_code == 200:
+                    return Response({"message": "Producto creado con éxito."}, status=status.HTTP_201_CREATED)
+                else:
+                    return Response({"error": "Algo salió mal. Producto no creado."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            else:
+                return Response({"error": "Algo salió mal. Producto no creado."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
+
+@api_view(['GET', 'DELETE', 'PUT'])
+def producto_view(request, idProducto):
     if request.method == 'GET':
         producto = collection_productos.find_one(ObjectId(idProducto))
         
@@ -57,7 +79,7 @@ def productos_detail_view(request, idProducto):
         producto['_id'] = str(ObjectId(producto.get('_id',[])))
         producto['vendedor'] = str(ObjectId(producto.get('vendedor',[])))
         producto['pujas'] = [str(ObjectId(puja)) for puja in producto.get('pujas',[])]
-            
+
         producto_serializer = ProductoSerializer(data=producto, many = False) 
         if producto_serializer.is_valid():
             json_data = producto_serializer.data
@@ -65,83 +87,57 @@ def productos_detail_view(request, idProducto):
         else:
             return Response(producto_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# Crear un producto
-@api_view(['POST'])
-def productos_create_view(request):
-    if request.method == 'POST':        
-        data = request.data   
-        
-        fecha = datetime.now()
-
-        nombre = data.get("Nombre")
-        descripcion = data.get("descripcion")
-        fotoURL = data.get("fotoURL")
-        precio = data.get("precio")
-        tags = data.get("tags")
-        ubicacion = data.get("ubicacion")
-        vendedor = data.get("vendedor")
-        cierre = data.get("cierre")
-        
-        producto = {
-            "_id" : ObjectId(),
-            "Nombre" : nombre,
-            "descripcion" : descripcion,
-            "fecha" : fecha,
-            "fotoURL" : fotoURL,
-            "precio" : float(precio),
-            "tags" : tags,
-            "ubicacion" : ubicacion,
-            "vendedor" : ObjectId(vendedor),
-            "cierre" : parser.parse(cierre),
-            "pujas" : []
-        }
-        
-        result = collection_productos.insert_one(producto)
-        if result.acknowledged:
-            return Response({"message" : "Producto creado con éxito."}, status=status.HTTP_201_CREATED)
-        else:
-            return Response({"error": "Algo salió mal. Producto no creado."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-# Borrar un producto
-@api_view(['DELETE'])
-def delete_producto_view(request, idProducto):
-    if request.method == 'DELETE':
-        result = collection_productos.delete_one({'_id': ObjectId(idProducto)})
-        if result.deleted_count == 1:
-            return Response({"message": "Producto eliminado con éxito."}, status=status.HTTP_204_NO_CONTENT)
+    elif request.method == 'DELETE':
+        producto = collection_productos.find_one({'_id': ObjectId(idProducto)})
+        if producto:
+            result = collection_productos.delete_one({'_id': ObjectId(idProducto)})
+            if result.deleted_count == 1:
+                url = 'http://localhost:8000/api/usuarios/delete_producto/' + str(producto['vendedor']) + '/' + idProducto + '/'                
+                response = requests.put(url)
+                if response.status_code == 200:
+                    return Response({"message": "Producto eliminado con éxito."}, status=status.HTTP_204_NO_CONTENT)
+                else:
+                    return Response({"error": "Algo salió mal. Producto no eliminado."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response({"error": "Producto no encontrado."}, status=status.HTTP_404_NOT_FOUND)
 
-# Actualizar un producto
-@api_view(['PUT'])
-def update_producto_view(request, idProducto):
-    if request.method == 'PUT':
-        data = request.data
-                
-        nombre = data.get("Nombre")
-        descripcion = data.get("descripcion")
-        fotoURL = data.get("fotoURL")
-        precio = data.get("precio")
-        tags = data.get("tags")
-        ubicacion = data.get("ubicacion")
-        cierre = data.get("cierre")
-        
-        result = collection_productos.update_one(
-            {'_id': ObjectId(idProducto)},
-            {'$set':{
-                "Nombre" : nombre,
-                "descripcion" : descripcion,
-                "fotoURL" : fotoURL,
-                "precio" : precio,
-                "tags" : tags,
-                "ubicacion" : ubicacion,
-                "cierre" : cierre,}
-            })
-        if result.acknowledged:
-            return Response({"message": "Producto actualizado."}, status=status.HTTP_200_OK)
+    elif request.method == 'PUT':
+        serializer = ProductoSerializer(data=request.data)
+        if serializer.is_valid():
+            producto = serializer.validated_data
+            old_producto = collection_productos.find_one({'_id': ObjectId(idProducto)})
+            producto['_id'] = ObjectId(idProducto)
+            producto['precio'] = float(producto['precio'])
+            producto['fecha'] = datetime.now()
+            producto['pujas'] = old_producto['pujas']
+            
+            result = collection_productos.replace_one({'_id': ObjectId(idProducto)}, producto)
+            if result.acknowledged:
+                return Response({"message": "Producto actualizado con éxito",},
+                                status=status.HTTP_200_OK)
+            else:
+                return Response({"error": "Algo salió mal. Producto no actualizado."},
+                                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
-            # Failed to create the document
-            return Response({"error": "Producto no encontrado."}, status=status.HTTP_404_NOT_FOUND)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
+#Agrega una puja a un producto
+@api_view(['PUT'])
+def add_puja_view(request, idProducto, idPuja):
+    if request.method == 'PUT':
+        producto = collection_productos.find_one({'_id': ObjectId(idProducto)})
+        if producto:
+            producto['pujas'].append(idPuja)
+            result = collection_productos.replace_one({'_id': ObjectId(idProducto)}, producto)
+            if result.acknowledged:
+                return Response({"message": "Puja añadida con éxito."}, status=status.HTTP_200_OK)
+            else:
+                return Response({"error": "Algo salió mal. Puja no añadida."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response({"error": "Producto no encontrado."}, status=status.HTTP_404_NOT_FOUND)
+
+
+
+# -------------------------------------  BÚSQUEDAS PARAMETRIZADAS ----------------------------------------
 
 # Devuelve los productos de un determinado usuario y cuya fecha de cierre sea anterior a la actual
 @api_view(['GET'])
@@ -167,6 +163,37 @@ def productos_usuario_anterior_view(request, idUsuario):
 def productos_menor_precio_view(request, precio):
     if request.method == 'GET':
         productos = list(collection_productos.find({'precio': {'$lte': float(precio)}}))
+        for producto in productos:
+            producto['_id'] = str(ObjectId(producto.get('_id',[])))
+            producto['vendedor'] = str(ObjectId(producto.get('vendedor',[])))
+            producto['pujas'] = [str(ObjectId(puja)) for puja in producto.get('pujas',[])]
+        
+        producto_serializer = ProductoSerializer(data=productos, many=True)
+        if producto_serializer.is_valid():
+            json_data = producto_serializer.data 
+            return Response(json_data, status=status.HTTP_200_OK)
+        else:
+            return Response(producto_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+#Buscar productos por una cadena de texto.
+#Si no encuentra ningun producto al principio, busca por palabras sueltas de longitud 4 o más.
+@api_view(['GET'])
+def productos_busqueda_view(request, cadena):
+    if request.method == 'GET':
+        collection_productos.create_index([("Nombre", "text")], name="Nombre_text")
+        productos = list(collection_productos.find({'$text': {'$search': cadena}}))
+        if not productos:
+            palabras = cadena.split()
+            for palabra in palabras:
+                if len(palabra) >= 4:
+                    productos = list(collection_productos.find({'$text': {'$search': palabra}}))
+                    if productos:
+                        break
+                    else:
+                        for palabra in palabras:
+                            productos = list(collection_productos.find({'tags': {'$elemMatch': {'$eq': palabra}}}))
+                            if productos:
+                                break
         for producto in productos:
             producto['_id'] = str(ObjectId(producto.get('_id',[])))
             producto['vendedor'] = str(ObjectId(producto.get('vendedor',[])))

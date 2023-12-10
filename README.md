@@ -1,8 +1,6 @@
 # elRastro
 ## Descripción
-Aplicación web de compraventa de productos mediante subasta para la asignatura 'Ingeniería Web', impartida en el cuarto curso de la carrera Ingeniería del Software en la Universidad de Málaga. 
-- Backend realizado con Python usando el framework Django y MongoDB como base de datos no relacional
-- Frontend en proceso de realización usando la tecnología Angular
+Aplicación web de compraventa de productos mediante subasta para la asignatura 'Ingeniería Web', impartida en el cuarto curso de la carrera Ingeniería del Software en la Universidad de Málaga. Backend realizado con Python usando el framework Django y MongoDB como base de datos no relacional.
 ## Grupo A4
 - Calvo Díaz, Fernando
 - Colbert Eastgate, Lucas
