@@ -12,12 +12,13 @@ from rest_framework import status
 my_client = pymongo.MongoClient('mongodb+srv://usuario:usuario@elrastrodb.oqjmaaw.mongodb.net/')
 
 # Nombre de la base de datos
-dbname = my_client['ElRastro-SegundaEntrega']
+dbname = my_client['ElRastro-TerceraEntrega']
 
 # Colecciones
 collection_pujas = dbname["pujas"]
 
 # -------------------------------------  VISTA DE LAS PUJAS ----------------------------------------
+
 
 # LISTA TODAS LAS PUJAS y crea una puja y la agrega a la lista de pujas del producto
 @api_view(['GET', 'POST'])
@@ -79,43 +80,18 @@ def puja_detail_view(request, puja_id):
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             return Response({"ERROR": "Puja no encontrada"}, status=status.HTTP_404_NOT_FOUND)
     
-    '''
+    # Eliminar la puja - Método DELETE descomentado
     elif request.method == 'DELETE':
         delete_data = collection_pujas.delete_one({'_id': ObjectId(puja_id)})
         if delete_data.deleted_count == 1:
             return Response({"mensaje": "Puja eliminada con éxito"}, status=status.HTTP_200_OK)
         else:
             return Response({"ERROR": "Puja no encontrada"}, status=status.HTTP_404_NOT_FOUND)
-       ''' 
-    
+
 # UPDATE PUJA -- No tiene sentido poder actualizar una puja así que no hemos incluído esta función
+# ...
 
-'''@api_view(['PUT'])
-def puja_update_view(request, puja_id):
-    data = request.data
-    pujador = data.get("pujador")
-    producto = data.get("producto")
-    valor = data.get("valor")
-    fecha = datetime.now()
-    result = collection_pujas.update_one(
-        {'_id': ObjectId(puja_id)},
-        {'$set':{
-            "pujador": ObjectId(pujador),
-            "valor": float(valor),
-            "fecha": fecha,
-            "producto": ObjectId(producto)}
-        }
-    )
-    if result.acknowledged:
-            # Document was successfully created, return its ObjectId
-        return Response({"message": "Puja actualizada"}, status=status.HTTP_200_OK)
-    else:
-            # Failed to create the document
-        return Response({"ERROR": "Puja no encontrada"}, status=status.HTTP_404_NOT_FOUND)
-
-'''
-
-#Devuelve la última puja de un producto en concreto
+# Devuelve la última puja de un producto en concreto
 @api_view(['GET'])
 def ultima_puja_producto(request, producto_id):
     if request.method == 'GET':
@@ -133,7 +109,7 @@ def ultima_puja_producto(request, producto_id):
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             return Response({"error": "Puja no encontrada"}, status=status.HTTP_404_NOT_FOUND)
         return Response({"error": "Producto no encontrado"}, status=status.HTTP_404_NOT_FOUND)
-    
+
 # Devuelve las pujas de un pujador en concreto.
 @api_view(['GET'])
 def pujas_usuario_view(request, usuario_id):
@@ -151,7 +127,7 @@ def pujas_usuario_view(request, usuario_id):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-#Devuelve la dirección de la persona pujadora
+# Devuelve la dirección de la persona pujadora
 @api_view(['GET'])
 def direccion_pujador(request, puja_id):
     if request.method == 'GET':
@@ -167,5 +143,5 @@ def direccion_pujador(request, puja_id):
                         direccion = usuario.get('vivienda')
                         return Response({"direccion": direccion}, status=status.HTTP_200_OK)
                     return Response({"error": "Usuario no encontrado"}, status=status.HTTP_404_NOT_FOUND)
-            return Response({"error": "Puja no encontrada"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Puja no encontrada"}, status.HTTP_404_NOT_FOUND)
         return Response({"error": "Puja no encontrada"}, status=status.HTTP_404_NOT_FOUND)
