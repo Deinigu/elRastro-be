@@ -104,6 +104,9 @@ def view_usuario(request, usuario_id):
             if serializer.is_valid():
                 usuario = serializer.validated_data
                 usuario['_id'] = ObjectId(usuario_id)
+                usuario['listaConver'] = [ObjectId(str(idConv)) for idConv in usuario.get('listaConver', [])]
+                usuario['productosVenta'] = [ObjectId(str(idProducto)) for idProducto in usuario.get('productosVenta', [])]
+
                 result = collection_usuarios.replace_one({'_id': ObjectId(usuario_id)}, usuario)
                 if result.acknowledged:
                     return Response({"message": "Usuario actualizado con éxito"},

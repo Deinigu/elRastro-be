@@ -32,8 +32,8 @@ collection_conversaciones = dbname["conversaciones"]
 
 # -------------------------------------  VISTA DE LAS CONVERSACIONES ----------------------------------------
 
-# Lista todas las conversaciones
-@api_view(['GET'])
+# Lista todas las conversaciones o agrega una nueva conversación
+@api_view(['GET', 'POST'])
 def conversaciones_list(request):
     if request.method == 'GET':
         conversaciones = list(collection_conversaciones.find())
@@ -47,6 +47,26 @@ def conversaciones_list(request):
             return Response(conversaciones_serializer.data, status=status.HTTP_200_OK)
         else:
             return Response(conversaciones_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == 'POST':
+        data = request.data
+        conversacion_serializer = ConversacionSerializer(data=data)
+
+        if conversacion_serializer.is_valid():
+            conversacion_data = conversacion_serializer.validated_data
+            conversacion_data['_id'] = ObjectId() 
+            conversacion_data['usuario1'] = ObjectId(conversacion_data['usuario1']) 
+            conversacion_data['usuario2'] = ObjectId(conversacion_data['usuario2'])
+            conversacion_data['productoId'] = ObjectId(conversacion_data['productoId']) 
+            conversacion_data['chats'] = []  
+
+            result = collection_conversaciones.insert_one(conversacion_data)
+            if result.acknowledged:
+                return Response({"message": "Conversación creada con éxito."}, status=status.HTTP_201_CREATED)
+            else:
+                return Response({"error": "Algo salió mal. Conversación no creada."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else:
+            return Response(conversacion_serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
 
 # Lista todas las conversaciones de un usuario
 @api_view(['GET'])
@@ -118,13 +138,15 @@ def chats_list_add(request, conversacionId):
 
 # Obtiene el ID de la conversación entre dos usuarios
 @api_view(['GET'])
-def conversacion_get(request, usuario1, usuario2):
+def conversacion_get(request, usuario1, usuario2, productoId):
     if request.method == 'GET':
         usuario1 = ObjectId(usuario1)
         usuario2 = ObjectId(usuario2)
+        productoId = ObjectId(productoId)
         conversacion = collection_conversaciones.find_one({
-            '$or': [{'usuario1': usuario1, 'usuario2': usuario2},
-                    {'usuario1': usuario2, 'usuario2': usuario1}]
+            '$or': [{'usuario1': usuario1, 'usuario2': usuario2, 'productoId' : productoId},
+                    {'usuario1': usuario2, 'usuario2': usuario1, 'productoId' : productoId},
+                    ]
         })
         if conversacion:
             return Response(str(ObjectId(conversacion.get('_id', []))), status=status.HTTP_200_OK)
