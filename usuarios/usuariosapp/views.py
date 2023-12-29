@@ -59,7 +59,7 @@ def lista_usuarios_crear(request):
             existing_user = collection_usuarios.find_one({'correo': usuario['correo']})
             if existing_user is not None:
                 return Response({"error": "Ya existe un usuario con ese correo."},
-                                status=status.HTTP_400_BAD_REQUEST)
+                                status=status.HTTP_409_CONFLICT)
             usuario['_id'] = ObjectId()
             usuario['listaConver'] = []
             usuario['productosVenta'] = []
@@ -72,6 +72,7 @@ def lista_usuarios_crear(request):
                 return Response({"error": "Algo salió mal. Usuario no creado."},
                                 status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
+            print(serializer.errors)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # Obtener, borrar o actualizar un usuario
