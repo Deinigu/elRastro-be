@@ -90,8 +90,20 @@ def puja_detail_view(request, puja_id):
         else:
             return Response({"ERROR": "Puja no encontrada"}, status=status.HTTP_404_NOT_FOUND)
 
-# UPDATE PUJA -- No tiene sentido poder actualizar una puja así que no hemos incluído esta función
-# ...
+# Actualiza una puja por su id pagado = true
+@api_view(['PUT'])
+def puja_pagada(request):
+    print(request.data)
+    if request.method == 'PUT':
+        puja = collection_pujas.find_one({'_id': ObjectId(request.data.get('idPuja'))})
+        if puja:
+            puja['pagado'] = True
+            result = collection_pujas.update_one({'_id': ObjectId(request.data.get('idPuja'))}, {'$set': puja})
+            if result.acknowledged:
+                return Response({"mensaje": "Puja pagada con éxito"}, status=status.HTTP_200_OK)
+            else:
+                return Response({"ERROR": "Puja no pagada"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"ERROR": "Puja no encontrada"}, status=status.HTTP_404_NOT_FOUND)
 
 # Devuelve la última puja de un producto en concreto
 @api_view(['GET'])
