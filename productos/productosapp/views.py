@@ -30,7 +30,7 @@ dbname = my_client['ElRastro-TerceraEntrega']
 collection_productos = dbname["productos"]
 
 # -------------------------------------  VISTAS DE PRODUCTO ----------------------------------------
-# Lista con todos los productos
+# Lista con todos los productos, create producto
 @api_view(['GET', 'POST'])
 def productos_list_view(request):
     if request.method == 'GET':
@@ -43,12 +43,13 @@ def productos_list_view(request):
             p['pujas'] = [str(ObjectId(puja)) for puja in p.get('pujas',[])]
         
         productos_serializer = ProductoSerializer(data=productosPorPujar, many= True)
+
         if productos_serializer.is_valid():
             json_data = productos_serializer.data
             return Response(json_data, status=status.HTTP_200_OK)
         else:
             return Response(productos_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
     elif request.method == 'POST':
         serializer = ProductoSerializer(data=request.data)
         if serializer.is_valid():
@@ -61,7 +62,7 @@ def productos_list_view(request):
 
             result = collection_productos.insert_one(producto)
             if result.acknowledged:
-                url = 'http://localhost:8000/api/usuarios/add_producto/' + str(producto['vendedor']) + '/' + str(producto['_id']) + '/'                
+                url = f'http://localhost:8000/api/usuarios/{str(producto["vendedor"])}/productos/{str(producto["_id"])}/'
                 response = requests.put(url)
                 if response.status_code == 200:
                     return Response({"message": "Producto creado con éxito."}, status=status.HTTP_201_CREATED)
@@ -70,19 +71,21 @@ def productos_list_view(request):
             else:
                 return Response({"error": "Algo salió mal. Producto no creado."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+# Read update delete de producto
 
 @api_view(['GET', 'DELETE', 'PUT'])
-def producto_view(request, idProducto):
+def producto_detail_view(request, idProducto):
     if request.method == 'GET':
         producto = collection_productos.find_one(ObjectId(idProducto))
-        
-        # Transformar los objectid en strings
-        producto['_id'] = str(ObjectId(producto.get('_id',[])))
-        producto['vendedor'] = str(ObjectId(producto.get('vendedor',[])))
-        producto['pujas'] = [str(ObjectId(puja)) for puja in producto.get('pujas',[])]
 
-        producto_serializer = ProductoSerializer(data=producto, many = False) 
+        # Transformar los ObjectId en strings
+        producto['_id'] = str(ObjectId(producto.get('_id', [])))
+        producto['vendedor'] = str(ObjectId(producto.get('vendedor', [])))
+        producto['pujas'] = [str(ObjectId(puja)) for puja in producto.get('pujas', [])]
+
+        producto_serializer = ProductoSerializer(data=producto, many=False)
         if producto_serializer.is_valid():
             json_data = producto_serializer.data
             return Response(json_data, status=status.HTTP_200_OK)
@@ -94,7 +97,7 @@ def producto_view(request, idProducto):
         if producto:
             result = collection_productos.delete_one({'_id': ObjectId(idProducto)})
             if result.deleted_count == 1:
-                url = 'http://localhost:8000/api/usuarios/delete_producto/' + str(producto['vendedor']) + '/' + idProducto + '/'                
+                url = f'http://localhost:8000/api/usuarios/{str(producto["vendedor"])}/productos/{idProducto}/'
                 response = requests.put(url)
                 if response.status_code == 200:
                     return Response({"message": "Producto eliminado con éxito."}, status=status.HTTP_204_NO_CONTENT)
@@ -111,7 +114,7 @@ def producto_view(request, idProducto):
             producto['precio'] = float(producto['precio'])
             producto['fecha'] = datetime.now()
             producto['pujas'] = old_producto['pujas']
-            
+
             result = collection_productos.replace_one({'_id': ObjectId(idProducto)}, producto)
             if result.acknowledged:
                 return Response({"message": "Producto actualizado con éxito",},
@@ -125,7 +128,7 @@ def producto_view(request, idProducto):
 
 #Agrega una puja a un producto
 @api_view(['PUT'])
-def add_puja_view(request, idProducto, idPuja):
+def add_puja_to_producto_view(request, idProducto, idPuja):
     if request.method == 'PUT':
         producto = collection_productos.find_one({'_id': ObjectId(idProducto)})
         if producto:
@@ -136,7 +139,6 @@ def add_puja_view(request, idProducto, idPuja):
             else:
                 return Response({"error": "Algo salió mal. Puja no añadida."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response({"error": "Producto no encontrado."}, status=status.HTTP_404_NOT_FOUND)
-
 
 
 # -------------------------------------  BÚSQUEDAS PARAMETRIZADAS ----------------------------------------
@@ -166,13 +168,13 @@ def productos_menor_precio_view(request, precio):
     if request.method == 'GET':
         productos = list(collection_productos.find({'precio': {'$lte': float(precio)}}))
         for producto in productos:
-            producto['_id'] = str(ObjectId(producto.get('_id',[])))
-            producto['vendedor'] = str(ObjectId(producto.get('vendedor',[])))
-            producto['pujas'] = [str(ObjectId(puja)) for puja in producto.get('pujas',[])]
-        
+            producto['_id'] = str(ObjectId(producto.get('_id', [])))
+            producto['vendedor'] = str(ObjectId(producto.get('vendedor', [])))
+            producto['pujas'] = [str(ObjectId(puja)) for puja in producto.get('pujas', [])]
+
         producto_serializer = ProductoSerializer(data=productos, many=True)
         if producto_serializer.is_valid():
-            json_data = producto_serializer.data 
+            json_data = producto_serializer.data
             return Response(json_data, status=status.HTTP_200_OK)
         else:
             return Response(producto_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -197,13 +199,13 @@ def productos_busqueda_view(request, cadena):
                             if productos:
                                 break
         for producto in productos:
-            producto['_id'] = str(ObjectId(producto.get('_id',[])))
-            producto['vendedor'] = str(ObjectId(producto.get('vendedor',[])))
-            producto['pujas'] = [str(ObjectId(puja)) for puja in producto.get('pujas',[])]
-        
+            producto['_id'] = str(ObjectId(producto.get('_id', [])))
+            producto['vendedor'] = str(ObjectId(producto.get('vendedor', [])))
+            producto['pujas'] = [str(ObjectId(puja)) for puja in producto.get('pujas', [])]
+
         producto_serializer = ProductoSerializer(data=productos, many=True)
         if producto_serializer.is_valid():
-            json_data = producto_serializer.data 
+            json_data = producto_serializer.data
             return Response(json_data, status=status.HTTP_200_OK)
         else:
             return Response(producto_serializer.errors, status=status.HTTP_400_BAD_REQUEST)

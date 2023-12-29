@@ -26,7 +26,7 @@ from rest_framework.renderers import JSONRenderer
 my_client = pymongo.MongoClient('mongodb+srv://usuario:usuario@elrastrodb.oqjmaaw.mongodb.net/')
 
 # Nombre de la base de datos
-dbname = my_client['ElRastro-SegundaEntrega']
+dbname = my_client['ElRastro-TerceraEntrega']
 
 # Colecciones
 collection_valoraciones = dbname["valoraciones"]
