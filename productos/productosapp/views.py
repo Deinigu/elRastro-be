@@ -34,13 +34,16 @@ collection_productos = dbname["productos"]
 @api_view(['GET', 'POST'])
 def productos_list_view(request):
     if request.method == 'GET':
-        productos = list(collection_productos.find({}).sort('fecha', pymongo.DESCENDING))
-        for p in productos:
-            p['_id'] = str(ObjectId(p.get('_id', [])))
-            p['vendedor'] = str(ObjectId(p.get('vendedor', [])))
-            p['pujas'] = [str(ObjectId(puja)) for puja in p.get('pujas', [])]
+        productosTerminados = list(collection_productos.find({'cierre': {'$lt': datetime.now()}}).sort('cierre', pymongo.ASCENDING))
+        productosPorPujar = list(collection_productos.find({'cierre': {'$gte': datetime.now()}}).sort('cierre', pymongo.ASCENDING))
+        productosPorPujar.extend(productosTerminados)
+        for p in productosPorPujar:
+            p['_id'] = str(ObjectId(p.get('_id',[])))
+            p['vendedor'] = str(ObjectId(p.get('vendedor',[])))
+            p['pujas'] = [str(ObjectId(puja)) for puja in p.get('pujas',[])]
+        
+        productos_serializer = ProductoSerializer(data=productosPorPujar, many= True)
 
-        productos_serializer = ProductoSerializer(data=productos, many=True)
         if productos_serializer.is_valid():
             json_data = productos_serializer.data
             return Response(json_data, status=status.HTTP_200_OK)
