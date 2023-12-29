@@ -48,7 +48,9 @@ def pujas_list_view(request):
             puja['pujador'] = ObjectId(puja['pujador'])
             puja['producto'] = ObjectId(puja['producto'])
             puja['valor'] = float(puja['valor'])
-
+            puja['pagado'] = False
+            puja['tasa'] = float(puja['tasa'])
+            
             result = collection_pujas.insert_one(puja)
             if result.acknowledged:
                 url='http://localhost:8001/api/productos/add_puja/' + str(puja['producto']) + '/' + str(puja['_id']) + '/'
