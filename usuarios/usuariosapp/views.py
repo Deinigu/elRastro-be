@@ -123,6 +123,22 @@ def view_usuario(request, usuario_id):
 
 # ---------------------------------------  EXTRAS Y BÚSQUEDAS PARAMETRIZADAS ----------------------------------------
 
+#Busca un usuario por email
+@api_view(['GET'])
+def usuario_por_email(request, email):
+    usuario = collection_usuarios.find_one({'correo': email})
+    if usuario:
+        if request.method == 'GET':
+            usuario['_id'] = str(ObjectId(usuario.get('_id',[])))
+            usuario['listaConver'] = [str(ObjectId(id)) for id in usuario.get('listaConver', [])]
+            usuario['productosVenta'] = [str(ObjectId(id)) for id in usuario.get('productosVenta', [])]
+            serializer = UsuarioSerializer(data=usuario)
+            if serializer.is_valid():
+                json_data = serializer.data
+                return Response(json_data, status=status.HTTP_200_OK)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 # Añadir o eliminar un producto de la lista de productos en venta de un usuario
 @api_view(['PUT', 'DELETE'])
 def productos_venta_usuario_view(request, usuario_id, producto_id):
