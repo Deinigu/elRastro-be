@@ -11,3 +11,4 @@ geopy
 requests
 djangorestframework-simplejwt
 cloudinary
+google-auth
