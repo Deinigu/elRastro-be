@@ -6,3 +6,5 @@ class PujaSerializer(serializers.Serializer):
     valor = serializers.DecimalField(max_digits=6, decimal_places=2)
     fecha = serializers.DateTimeField(required=False)
     producto = serializers.CharField()
+    pagado = serializers.BooleanField(required=False)
+    tasa = serializers.DecimalField(max_digits=6, decimal_places=2, required=False)

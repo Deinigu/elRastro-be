@@ -15,7 +15,7 @@ import requests
 my_client = pymongo.MongoClient('mongodb+srv://usuario:usuario@elrastrodb.oqjmaaw.mongodb.net/')
 
 # Nombre de la base de datos
-dbname = my_client['ElRastro']
+dbname = my_client['ElRastro-TerceraEntrega']
 
 # Colecciones
 collection_usuarios = dbname["usuarios"]

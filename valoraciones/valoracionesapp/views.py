@@ -26,7 +26,7 @@ from rest_framework.renderers import JSONRenderer
 my_client = pymongo.MongoClient('mongodb+srv://usuario:usuario@elrastrodb.oqjmaaw.mongodb.net/')
 
 # Nombre de la base de datos
-dbname = my_client['ElRastro-SegundaEntrega']
+dbname = my_client['ElRastro-TerceraEntrega']
 
 # Colecciones
 collection_valoraciones = dbname["valoraciones"]
@@ -102,7 +102,7 @@ def crear_valoracion(request):
             perValorada = perValorada.json()
             reputacion = round(reputacion, 2)
             perValorada['reputacion'] = reputacion
-            res = requests.put('http://localhost:8000/api/usuarios/update/' + str(perValorada['_id']) + '/', json=perValorada)
+            res = requests.put('http://localhost:8000/api/usuarios/' + str(perValorada['_id']) + '/', json=perValorada)
             if result.acknowledged and res.status_code == status.HTTP_200_OK:
                 return Response({"message": "Valoracion creada con éxito",},
                                 status=status.HTTP_201_CREATED)

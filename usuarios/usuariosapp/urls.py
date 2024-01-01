@@ -1,19 +1,12 @@
 from django.urls import path
-from usuariosapp import views
+from . import views
 
 urlpatterns = [
-    # USUARIOS
-    path('api/usuarios/', views.lista_usuarios_crear),
-    path('api/usuarios/create/', views.lista_usuarios_crear),
-    path('api/usuarios/<str:usuario_id>/', views.view_usuario),
-    path('api/usuarios/delete/<str:usuario_id>/', views.view_usuario),
-    path('api/usuarios/update/<str:usuario_id>/', views.view_usuario),
-    path('api/usuarios/mayor_reputacion/<str:reputacion>/', views.usuarios_mayor_reputacion_view),
-    path('api/usuarios/menor_reputacion/<str:reputacion>/', views.usuarios_menor_reputacion_view),
-    path('api/usuarios/compradores_de/<str:usuario_id>/', views.compradores_usuario_view),
-    path('api/usuarios/add_producto/<str:usuario_id>/<str:producto_id>/', views.add_producto_venta_view),
-    path('api/usuarios/add_conversacion/<str:usuario_id>/<str:conversacion_id>/', views.add_conversacion),
-    path('api/usuarios/delete_producto/<str:usuario_id>/<str:producto_id>/', views.delete_producto_venta_view),
-    path('api/usuarios/delete_conversacion/<str:usuario_id>/<str:conversacion_id>/', views.delete_conversacion),
-
+    path('api/usuarios/', views.lista_usuarios_crear, name='lista_usuarios_crear'),
+    path('api/usuarios/<str:usuario_id>/', views.view_usuario, name='view_usuario'),
+    path('api/usuarios/email/<str:email>/', views.usuario_por_email, name='usuario_por_email'),
+    path('api/usuarios/<str:usuario_id>/productos/<str:producto_id>/', views.productos_venta_usuario_view, name='productos_venta_usuario_view'),
+    path('api/usuarios/<str:usuario_id>/conversaciones/<str:conversacion_id>/', views.conversaciones_usuario_view, name='conversaciones_usuario_view'),
+    path('api/usuarios/reputacion/<str:operador>/<str:reputacion>/', views.usuarios_reputacion_view, name='usuarios_reputacion_view'),
+    path('api/usuarios/compradores/<str:usuario_id>/', views.compradores_usuario_view, name='compradores_usuario_view'),
 ]
