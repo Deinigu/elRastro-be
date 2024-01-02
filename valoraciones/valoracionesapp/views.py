@@ -98,11 +98,11 @@ def crear_valoracion(request):
                 reputacion = reputacion / len(valorado.data)
             
             #Actualiza la reputacion del usuario
-            perValorada = requests.get('http://localhost:8000/api/usuarios/' + str(valoracion['idValorado']) + '/')
+            perValorada = requests.get('http://51.21.137.60:8000/api/usuarios/' + str(valoracion['idValorado']) + '/')
             perValorada = perValorada.json()
             reputacion = round(reputacion, 2)
             perValorada['reputacion'] = reputacion
-            res = requests.put('http://localhost:8000/api/usuarios/' + str(perValorada['_id']) + '/', json=perValorada)
+            res = requests.put('http://51.21.137.60:8000/api/usuarios/' + str(perValorada['_id']) + '/', json=perValorada)
             if result.acknowledged and res.status_code == status.HTTP_200_OK:
                 return Response({"message": "Valoracion creada con éxito",},
                                 status=status.HTTP_201_CREATED)

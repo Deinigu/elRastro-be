@@ -224,14 +224,14 @@ def compradores_usuario_view(request, usuario_id):
     compradores = []
 
     if request.method == 'GET':
-        url_productos = f'http://localhost:8001/api/productos/anteriores/{usuario_id}'
+        url_productos = f'http://51.21.137.60:8001/api/productos/anteriores/{usuario_id}'
         response_productos = requests.get(url_productos)
 
         if response_productos.status_code == 200:
             productos = response_productos.json()
 
             for producto in productos:
-                url_puja = f'http://localhost:8002/api/pujas/ultima_puja/producto/{str(producto["_id"])}'
+                url_puja = f'http://51.21.137.60:8002/api/pujas/ultima_puja/producto/{str(producto["_id"])}'
                 response_puja = requests.get(url_puja)
 
                 if response_puja.status_code == 200:

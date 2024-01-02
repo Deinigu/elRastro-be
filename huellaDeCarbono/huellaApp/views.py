@@ -24,8 +24,8 @@ import math
 @api_view(['GET'])
 def huellaDeCarbono(request, idUsuario1, idUsuario2):
     if request.method == 'GET':
-        url1 = 'http://localhost:8000/api/usuarios/' + idUsuario1 + '/'
-        url2 = 'http://localhost:8000/api/usuarios/' + idUsuario2 + '/'
+        url1 = 'http://51.21.137.60:8000/api/usuarios/' + idUsuario1 + '/'
+        url2 = 'http://51.21.137.60:8000/api/usuarios/' + idUsuario2 + '/'
         response1 = requests.get(url1)
         response2 = requests.get(url2)
         if response1.status_code != 200 or response2.status_code != 200:
@@ -66,7 +66,7 @@ def huellaDeCarbono(request, idUsuario1, idUsuario2):
 @api_view(['GET'])
 def getCoordenadas(request, idUsuario):
     if request.method == 'GET':
-        url1 = 'http://localhost:8000/api/usuarios/' + idUsuario + '/'
+        url1 = 'http://51.21.137.60:8000/api/usuarios/' + idUsuario + '/'
         response = requests.get(url1)
         if response.status_code != 200:
             return JsonResponse({'message': 'Error al obtener el usuario'}, status=status.HTTP_400_BAD_REQUEST)

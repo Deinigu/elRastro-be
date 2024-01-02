@@ -1,3 +1,4 @@
+*.pyc
 elrastro_project/elrastro_project/__pycache__/__init__.cpython-311.pyc
 elrastro_project/elrastro_project/__pycache__/settings.cpython-311.pyc
 elrastro_project/elrastro_project/__pycache__/urls.cpython-311.pyc

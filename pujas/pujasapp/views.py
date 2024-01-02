@@ -53,7 +53,7 @@ def pujas_list_view(request):
             
             result = collection_pujas.insert_one(puja)
             if result.acknowledged:
-                url='http://localhost:8001/api/productos/add_puja/' + str(puja['producto']) + '/' + str(puja['_id']) + '/'
+                url='http://51.21.137.60:8001/api/productos/add_puja/' + str(puja['producto']) + '/' + str(puja['_id']) + '/'
                 response = requests.put(url)
                 if response.status_code == 200:
                     return Response({"message": "Puja creada"}, status=status.HTTP_201_CREATED)
@@ -149,7 +149,7 @@ def direccion_pujador(request, puja_id):
             puja = collection_pujas.find_one({'_id': ObjectId(puja_id)})
             if puja:
                 pujador = puja.get('pujador')
-                url = 'http://localhost:8000/api/usuarios/' + str(pujador) + '/'
+                url = 'http://51.21.137.60:8000/api/usuarios/' + str(pujador) + '/'
                 response = requests.get(url)
                 if response.status_code == 200:
                     usuario = response.json()
