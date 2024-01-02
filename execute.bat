@@ -28,7 +28,7 @@ start cmd /k python conversaciones\manage.py runserver 8006
 python valoraciones\manage.py migrate
 start cmd /k python valoraciones\manage.py runserver 8007
 
-python valoraciones\manage.py migrate
+python imagenes\manage.py migrate
 start cmd /k python imagenes\manage.py runserver 8008
 
 python oAuth\manage.py migrate

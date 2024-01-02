@@ -12,3 +12,5 @@ requests
 djangorestframework-simplejwt
 cloudinary
 google-auth
+django-extensions
+Werkzeug
