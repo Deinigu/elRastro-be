@@ -62,7 +62,7 @@ def productos_list_view(request):
 
             result = collection_productos.insert_one(producto)
             if result.acknowledged:
-                url = f'http://51.21.137.60:8000/api/usuarios/{str(producto["vendedor"])}/productos/{str(producto["_id"])}/'
+                url = f'https://13.38.223.212:8000/api/usuarios/{str(producto["vendedor"])}/productos/{str(producto["_id"])}/'
                 response = requests.put(url)
                 if response.status_code == 200:
                     return Response({"message": "Producto creado con éxito."}, status=status.HTTP_201_CREATED)
@@ -97,7 +97,7 @@ def producto_detail_view(request, idProducto):
         if producto:
             result = collection_productos.delete_one({'_id': ObjectId(idProducto)})
             if result.deleted_count == 1:
-                url = f'http://51.21.137.60:8000/api/usuarios/{str(producto["vendedor"])}/productos/{idProducto}/'
+                url = f'https://13.38.223.212:8000/api/usuarios/{str(producto["vendedor"])}/productos/{idProducto}/'
                 response = requests.put(url)
                 if response.status_code == 200:
                     return Response({"message": "Producto eliminado con éxito."}, status=status.HTTP_204_NO_CONTENT)

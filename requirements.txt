@@ -5,7 +5,7 @@ pytz
 dnspython
 djangorestframework
 django-cors-headers
-psycopg2
+psycopg2-binary
 python-dateutil
 geopy
 requests
