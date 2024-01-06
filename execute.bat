@@ -1,5 +1,9 @@
 @echo off
 
+python -m venv elRastroEnv
+
+call elRastroEnv\Scripts\activate.bat
+
 :: Install requirements
 pip install -r requirements.txt
 
@@ -16,19 +20,13 @@ start cmd /k python pujas\manage.py runserver 8002
 python huellaDeCarbono\manage.py migrate
 start cmd /k python huellaDeCarbono\manage.py runserver 8003
 
-python horaLocal\manage.py migrate
-start cmd /k python horaLocal\manage.py runserver 8004
-
-python cambiomoneda\manage.py migrate
-start cmd /k python cambiomoneda\manage.py runserver 8005
-
 python conversaciones\manage.py migrate
 start cmd /k python conversaciones\manage.py runserver 8006
 
 python valoraciones\manage.py migrate
 start cmd /k python valoraciones\manage.py runserver 8007
 
-python valoraciones\manage.py migrate
+python imagenes\manage.py migrate
 start cmd /k python imagenes\manage.py runserver 8008
 
 python oAuth\manage.py migrate
